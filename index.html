@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>КЕРН — демо мультиагентной платформы</title>
+<meta name="description" content="Интерактивный прототип корпоративной мультиагентной платформы КЕРН.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<noscript>Для просмотра демо включите JavaScript в браузере.</noscript>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<script src="./kern-data.js"></script>
+<script src="./kern-mail.js"></script>
+<style>
+html,body{margin:0;height:100%;font-family:'Golos Text',system-ui,sans-serif;color:#1d1d1b;background:#fff;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#1d1d1b}a:hover{color:#c2571c}
+button,input,textarea{font-family:inherit;color:inherit;font-size:inherit}
+input:focus,textarea:focus{outline:none}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#e3e3df;border-radius:8px}::-webkit-scrollbar-track{background:transparent}
+</style>
+</helmet>
+<div style="display:flex;height:100vh;width:100%;overflow:hidden;background:#fff;font-size:14px;color:#1d1d1b">
+<sc-if value="{{ sidebarOpen }}" hint-placeholder-val="{{ true }}">
+<aside style="width:264px;flex:none;background:#f9f9f8;border-right:1px solid #ededea;display:flex;flex-direction:column;height:100%;min-height:0">
+<div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 10px 0 16px;flex:none">
+<div style="display:flex;align-items:center;gap:8px"><span style="font-family:'JetBrains Mono',monospace;font-weight:600;font-size:14px;color:#c2571c">[к]</span><span style="font-weight:700;font-size:14px;letter-spacing:.1em">КЕРН</span><span style="font-size:11px;font-weight:600;letter-spacing:.04em;color:#8b3c14;background:#fceadf;border-radius:5px;padding:3px 6px">ДЕМО</span></div>
+<button onClick="{{ toggleSidebar }}" title="Свернуть панель" style="width:32px;height:32px;border:0;background:transparent;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6b6b66" style-hover="background:#ececea"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 4v16"></path></svg></button>
+</div>
+<nav style="padding:2px 8px;display:flex;flex-direction:column;gap:2px;flex:none">
+<button onClick="{{ newChat }}" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:0;border-radius:8px;background:{{ navBg.chat }};cursor:pointer;text-align:left;font-size:13.5px" style-hover="background:#ececea"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>Новый чат</button>
+<button onClick="{{ goAgents }}" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:0;border-radius:8px;background:{{ navBg.agents }};cursor:pointer;text-align:left;font-size:13.5px" style-hover="background:#ececea"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="3"></rect><path d="M12 4v4M9 13v2M15 13v2"></path></svg>Агенты</button>
+<button onClick="{{ goColl }}" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:0;border-radius:8px;background:{{ navBg.coll }};cursor:pointer;text-align:left;font-size:13.5px" style-hover="background:#ececea"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5-10-5Z"></path><path d="m2 13 10 5 10-5"></path></svg>Коллекции</button>
+<button onClick="{{ goInt }}" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:0;border-radius:8px;background:{{ navBg.int }};cursor:pointer;text-align:left;font-size:13.5px" style-hover="background:#ececea"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V3M15 7V3M7 7h10v4a5 5 0 0 1-10 0V7ZM12 16v5"></path></svg>Интеграции</button>
+<button onClick="{{ goMail }}" style="display:flex;align-items:center;gap:9px;padding:6px 10px 6px 38px;border:0;border-radius:8px;background:{{ navBg.mail }};cursor:pointer;text-align:left;font-size:13px;color:#3a3a37" style-hover="background:#ececea"><span style="width:7px;height:7px;border-radius:50%;background:oklch(0.62 0.15 150);flex:none"></span><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Корпоративная почта</span><sc-if value="{{ mailHasUrgent }}"><span style="min-width:20px;height:18px;padding:0 6px;border-radius:9px;background:oklch(0.6 0.18 25);color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ mailUrgentCount }}</span></sc-if></button>
+</nav>
+<div style="height:1px;background:#ededea;margin:10px 16px 4px;flex:none"></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 8px 8px">
+<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;color:#55554f;font-size:13.5px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>История</div>
+<sc-for list="{{ histGroups }}" as="g" hint-placeholder-count="2">
+<div style="padding:10px 10px 4px;font-size:11.5px;color:#9a9a94">{{ g.label }}</div>
+<sc-for list="{{ g.items }}" as="h" hint-placeholder-count="2">
+<button onClick="{{ h.open }}" style="display:block;width:100%;padding:7px 10px;border:0;border-radius:8px;background:{{ h.bg }};cursor:pointer;text-align:left;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" style-hover="background:#ececea">{{ h.title }}</button>
+</sc-for>
+</sc-for>
+</div>
+<div style="padding:8px;border-top:1px solid #ededea;flex:none;display:flex;flex-direction:column;gap:6px">
+<button onClick="{{ goAdmin }}" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:0;border-radius:8px;background:{{ navBg.admin }};cursor:pointer;text-align:left;font-size:13.5px" style-hover="background:#ececea"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V12M10 20V5M16 20v-9M2 20h20"></path></svg>Администрирование</button>
+<div style="display:flex;align-items:center;gap:10px;padding:6px 10px">
+<div style="width:32px;height:32px;border-radius:50%;background:#e6e4de;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#55554f;flex:none">ИС</div>
+<div style="min-width:0"><div style="font-size:13px;font-weight:500">Ирина Соколова</div><div style="font-size:11.5px;color:#8a8a84">Администратор платформы</div></div>
+</div>
+</div>
+</aside>
+</sc-if>
+<sc-if value="{{ sidebarClosed }}" hint-placeholder-val="{{ false }}">
+<div style="width:56px;flex:none;background:#f9f9f8;border-right:1px solid #ededea;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0">
+<button onClick="{{ toggleSidebar }}" title="Развернуть панель" style="width:36px;height:36px;border:0;background:transparent;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#c2571c;font-family:'JetBrains Mono',monospace;font-weight:600" style-hover="background:#ececea">[к]</button>
+<button onClick="{{ newChat }}" title="Новый чат" style="width:36px;height:36px;border:0;background:{{ navBg.chat }};border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer" style-hover="background:#ececea"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+<button onClick="{{ goAgents }}" title="Агенты" style="width:36px;height:36px;border:0;background:{{ navBg.agents }};border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer" style-hover="background:#ececea"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="3"></rect><path d="M12 4v4M9 13v2M15 13v2"></path></svg></button>
+<button onClick="{{ goColl }}" title="Коллекции" style="width:36px;height:36px;border:0;background:{{ navBg.coll }};border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer" style-hover="background:#ececea"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5-10-5Z"></path><path d="m2 13 10 5 10-5"></path></svg></button>
+<button onClick="{{ goMail }}" title="Интеграции · Корпоративная почта" style="width:36px;height:36px;border:0;background:{{ navBg.mail }};border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative" style-hover="background:#ececea"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V3M15 7V3M7 7h10v4a5 5 0 0 1-10 0V7ZM12 16v5"></path></svg><sc-if value="{{ mailHasUrgent }}"><span style="position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:oklch(0.6 0.18 25);border:1.5px solid #f9f9f8"></span></sc-if></button>
+<div style="flex:1"></div>
+<button onClick="{{ goAdmin }}" title="Администрирование" style="width:36px;height:36px;border:0;background:{{ navBg.admin }};border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer" style-hover="background:#ececea"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V12M10 20V5M16 20v-9M2 20h20"></path></svg></button>
+</div>
+</sc-if>
+<main style="flex:1;min-width:0;display:flex;flex-direction:column;height:100%;position:relative">
+<sc-if value="{{ isChat }}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column">
+<header style="height:54px;flex:none;display:flex;align-items:center;gap:10px;padding:0 24px">
+<span style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ convTitle }}</span>
+</header>
+<div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:{{ chatJustify }}">
+<div ref="{{ scrollRef }}" style="flex:{{ scrollFlex }};min-height:0;overflow-y:auto">
+<div style="max-width:840px;margin:0 auto;padding:16px 24px 28px;display:flex;flex-direction:column;gap:30px">
+<sc-if value="{{ emptyNoAgent }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;padding-top:8px">
+<h1 style="margin:0;font-size:30px;font-weight:600;letter-spacing:-.015em">Добрый день, Ирина</h1>
+<p style="margin:0;color:#6b6b66;max-width:520px;line-height:1.55;text-wrap:pretty">Задайте вопрос по данным компании или выберите агента под задачу — протоколы, табличные расчёты, презентации, архивы.</p>
+<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:720px">
+<sc-for list="{{ suggestions }}" as="sg" hint-placeholder-count="3"><button onClick="{{ sg.onClick }}" style="border:1px solid #e6e6e2;background:#fff;border-radius:999px;padding:8px 14px;font-size:13px;color:#3a3a37;cursor:pointer" style-hover="background:#f6f6f4">{{ sg.text }}</button></sc-for>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ emptyAgentShow }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;padding-top:8px">
+<div style="width:52px;height:52px;border-radius:14px;background:{{ emptyAgent.tileBg }};color:{{ emptyAgent.tileFg }};display:flex;align-items:center;justify-content:center;font-weight:600;font-size:17px">{{ emptyAgent.abbr }}</div>
+<h1 style="margin:0;font-size:26px;font-weight:600;letter-spacing:-.01em">{{ emptyAgent.name }}</h1>
+<p style="margin:0;color:#6b6b66;max-width:560px;line-height:1.55;text-wrap:pretty">{{ emptyAgent.short }}</p>
+<div style="display:flex;flex-direction:column;gap:6px;width:100%;max-width:560px;margin-top:4px">
+<sc-for list="{{ suggestions }}" as="sg" hint-placeholder-count="3"><button onClick="{{ sg.onClick }}" style="border:1px solid #ececea;background:#fff;border-radius:12px;padding:11px 14px;font-size:13.5px;color:#3a3a37;cursor:pointer;text-align:left;display:flex;justify-content:space-between;gap:10px" style-hover="background:#f6f6f4"><span>{{ sg.text }}</span><span style="color:#a3a39d">↗</span></button></sc-for>
+</div>
+</div>
+</sc-if>
+<sc-for list="{{ msgs }}" as="m" hint-placeholder-count="2">
+<sc-if value="{{ m.isUser }}">
+<div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+<sc-if value="{{ m.hasFiles }}"><div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+<sc-for list="{{ m.files }}" as="f"><div style="display:flex;align-items:center;gap:10px;width:280px;padding:8px 12px 8px 8px;border:1px solid #ececea;border-radius:14px;background:#fff">
+<div style="width:40px;height:40px;border-radius:10px;background:{{ f.bg }};color:{{ f.fg }};display:flex;align-items:center;justify-content:center;font:600 10px 'JetBrains Mono',monospace;flex:none">{{ f.ext }}</div>
+<div style="min-width:0"><div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ f.name }}</div><div style="font-size:11.5px;color:#8a8a84">{{ f.meta }}</div></div>
+</div></sc-for>
+</div></sc-if>
+<sc-if value="{{ m.hasText }}"><div style="background:#f3f3f1;border-radius:20px;padding:10px 16px;max-width:78%;line-height:1.55">{{ m.text }}</div></sc-if>
+</div>
+</sc-if>
+<sc-if value="{{ m.isBot }}">
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#8a8a84">
+<div style="width:22px;height:22px;border-radius:6px;background:{{ m.tileBg }};color:{{ m.tileFg }};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600">{{ m.abbr }}</div>
+<span style="color:#3a3a37;font-weight:500">{{ m.agentName }}</span><span>·</span><span>{{ m.model }}</span>
+</div>
+<button onClick="{{ m.toggleSteps }}" style="align-self:flex-start;border:0;background:transparent;padding:0;display:flex;align-items:center;gap:4px;color:#8a8a84;font-size:12.5px;cursor:pointer" style-hover="color:#1d1d1b">{{ m.time }}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate({{ m.chevRot }}deg);transition:transform .15s"><path d="m9 6 6 6-6 6"></path></svg></button>
+<sc-if value="{{ m.stepsOpen }}">
+<div style="display:flex;flex-direction:column;gap:2px;border-left:1px solid #e6e6e2;margin-left:6px;padding-left:14px">
+<sc-for list="{{ m.steps }}" as="st"><div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#8a8a84;padding:3px 0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(0.6 0.13 150)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"></path></svg>{{ st.text }}</div></sc-for>
+</div>
+</sc-if>
+<sc-for list="{{ m.blocks }}" as="b">
+<sc-if value="{{ b.isH1 }}"><h2 style="margin:6px 0 0;font-size:24px;font-weight:600;letter-spacing:-.015em;line-height:1.25;text-wrap:pretty">{{ b.v }}</h2></sc-if>
+<sc-if value="{{ b.isH2 }}"><h3 style="margin:10px 0 0;font-size:16px;font-weight:600">{{ b.v }}</h3></sc-if>
+<sc-if value="{{ b.isP }}"><p style="margin:0;line-height:1.65;text-wrap:pretty">{{ b.v }}</p></sc-if>
+<sc-if value="{{ b.isMeta }}"><div style="color:#8a8a84;font-size:13px">{{ b.v }}</div></sc-if>
+<sc-if value="{{ b.isList }}"><ul style="margin:0;padding-left:20px;line-height:1.7"><sc-for list="{{ b.items }}" as="li"><li>{{ li }}</li></sc-for></ul></sc-if>
+<sc-if value="{{ b.isTable }}">
+<div style="border:1px solid #ececea;border-radius:12px;overflow:hidden;font-size:13px">
+<div style="display:grid;grid-template-columns:{{ b.cols }};background:#f9f9f8;color:#6b6b66;font-weight:500"><sc-for list="{{ b.head }}" as="hc"><div style="padding:9px 12px">{{ hc }}</div></sc-for></div>
+<sc-for list="{{ b.rows }}" as="r"><div style="display:grid;grid-template-columns:{{ b.cols }};border-top:1px solid #ececea"><sc-for list="{{ r.cells }}" as="c"><div style="padding:9px 12px;line-height:1.45">{{ c }}</div></sc-for></div></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ b.isFiles }}">
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+<sc-for list="{{ b.files }}" as="f"><div onClick="{{ f.open }}" style="display:flex;align-items:center;gap:10px;padding:8px 14px 8px 8px;border:1px solid #ececea;border-radius:14px;background:#fff;cursor:pointer" style-hover="background:#f9f9f8">
+<div style="width:36px;height:36px;border-radius:9px;background:{{ f.bg }};color:{{ f.fg }};display:flex;align-items:center;justify-content:center;font:600 10px 'JetBrains Mono',monospace;flex:none">{{ f.ext }}</div>
+<div><div style="font-size:13px;font-weight:500">{{ f.name }}</div><div style="font-size:11.5px;color:#8a8a84">{{ f.meta }} · Скачать</div></div>
+</div></sc-for>
+</div>
+</sc-if>
+</sc-for>
+</div>
+</sc-if>
+</sc-for>
+<sc-if value="{{ pending }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;gap:8px;font-size:12.5px"><div style="width:22px;height:22px;border-radius:6px;background:{{ pend.tileBg }};color:{{ pend.tileFg }};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600">{{ pend.abbr }}</div><span style="color:#3a3a37;font-weight:500">{{ pend.name }}</span></div>
+<div style="display:flex;flex-direction:column;gap:2px;border-left:1px solid #e6e6e2;margin-left:6px;padding-left:14px;font-size:13px">
+<sc-for list="{{ pendDone }}" as="st"><div style="display:flex;align-items:center;gap:8px;color:#8a8a84;padding:3px 0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(0.6 0.13 150)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"></path></svg>{{ st.text }}</div></sc-for>
+<div style="padding:3px 0 3px 21px">{{ shimmer }}</div>
+</div>
+</div>
+</sc-if>
+</div>
+</div>
+<div style="flex:none;padding:0 24px 10px;display:flex;flex-direction:column;align-items:center">
+<div style="width:100%;max-width:792px;position:relative;z-index:30">
+<sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}"><div onClick="{{ closeMenu }}" style="position:fixed;inset:0"></div></sc-if>
+<sc-if value="{{ menuAttach }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:0;bottom:calc(100% + 8px);width:280px;background:#fff;border:1px solid #e6e6e2;border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.10);padding:6px">
+<button onClick="{{ addFile }}" style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border:0;background:transparent;border-radius:9px;cursor:pointer;text-align:left;font-size:13.5px" style-hover="background:#f3f3f1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m21 11-8.5 8.5a5 5 0 0 1-7-7L14 4a3.3 3.3 0 0 1 4.7 4.7L10 17.4a1.7 1.7 0 0 1-2.4-2.4L15 7.6"></path></svg>Загрузить с компьютера</button>
+<button onClick="{{ addFromColl }}" style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border:0;background:transparent;border-radius:9px;cursor:pointer;text-align:left;font-size:13.5px" style-hover="background:#f3f3f1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5-10-5Z"></path><path d="m2 13 10 5 10-5"></path></svg>Подключить коллекцию</button>
+<div style="padding:8px 10px 6px;font-size:11.5px;color:#9a9a94;border-top:1px solid #f0f0ed;margin-top:4px">Можно перетащить файлы прямо в окно чата</div>
+</div>
+</sc-if>
+<sc-if value="{{ menuFormats }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:0;bottom:calc(100% + 8px);width:min(440px,100%);background:#fff;border:1px solid #e6e6e2;border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.10);padding:16px;display:flex;flex-direction:column;gap:14px">
+<div style="font-size:13.5px;font-weight:600">Поддерживаемые форматы файлов</div>
+<sc-for list="{{ formatGroups }}" as="fg" hint-placeholder-count="4">
+<div style="display:flex;flex-direction:column;gap:7px">
+<div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#55554f;font-weight:500"><span style="width:10px;height:10px;border-radius:3px;background:{{ fg.fg }}"></span>{{ fg.name }}</div>
+<div style="display:flex;flex-wrap:wrap;gap:4px"><sc-for list="{{ fg.exts }}" as="ex"><span style="font:500 11.5px 'JetBrains Mono',monospace;padding:3px 7px;border-radius:6px;background:#f3f3f1;color:#3a3a37">{{ ex }}</span></sc-for></div>
+</div>
+</sc-for>
+<div style="font-size:11.5px;color:#8a8a84;border-top:1px solid #f0f0ed;padding-top:10px">До 20 файлов в сообщении · до 200 МБ на файл · архивы до 2 ГБ</div>
+</div>
+</sc-if>
+<sc-if value="{{ menuAgent }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;right:0;bottom:calc(100% + 8px);width:min(360px,100%);background:#fff;border:1px solid #e6e6e2;border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.10);padding:6px">
+<div style="padding:8px 10px 6px;font-size:11.5px;color:#9a9a94">Агент</div>
+<sc-for list="{{ agentOptions }}" as="o" hint-placeholder-count="6">
+<button onClick="{{ o.onClick }}" style="display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border:0;background:transparent;border-radius:9px;cursor:pointer;text-align:left" style-hover="background:#f3f3f1">
+<div style="width:28px;height:28px;border-radius:8px;background:{{ o.tileBg }};color:{{ o.tileFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex:none">{{ o.abbr }}</div>
+<div style="min-width:0;flex:1"><div style="font-size:13.5px">{{ o.name }}</div><div style="font-size:11.5px;color:#8a8a84;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ o.short }}</div></div>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="opacity:{{ o.checkOp }};flex:none"><path d="m5 12 5 5L20 7"></path></svg>
+</button>
+</sc-for>
+<button onClick="{{ allAgentsLink }}" style="display:block;width:100%;padding:9px 10px;border:0;border-top:1px solid #f0f0ed;margin-top:4px;background:transparent;cursor:pointer;text-align:left;font-size:12.5px;color:#55554f" style-hover="color:#1d1d1b">Все агенты и описание →</button>
+</div>
+</sc-if>
+<sc-if value="{{ menuModel }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;right:0;bottom:calc(100% + 8px);width:min(320px,100%);background:#fff;border:1px solid #e6e6e2;border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.10);padding:6px">
+<div style="padding:8px 10px 6px;font-size:11.5px;color:#9a9a94">Языковая модель · развёрнуты в контуре компании</div>
+<sc-for list="{{ modelOptions }}" as="o" hint-placeholder-count="4">
+<button onClick="{{ o.onClick }}" style="display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border:0;background:transparent;border-radius:9px;cursor:pointer;text-align:left" style-hover="background:#f3f3f1">
+<div style="flex:1;min-width:0"><div style="font-size:13.5px">{{ o.name }}</div><div style="font-size:11.5px;color:#8a8a84">{{ o.desc }}</div></div>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="opacity:{{ o.checkOp }};flex:none"><path d="m5 12 5 5L20 7"></path></svg>
+</button>
+</sc-for>
+</div>
+</sc-if>
+<div style="position:relative;border:1px solid #e6e6e2;border-radius:24px;box-shadow:0 6px 24px rgba(0,0,0,.06);background:#fff;padding:12px 12px 10px 14px;display:flex;flex-direction:column;gap:8px">
+<sc-if value="{{ hasAttach }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-wrap:wrap;gap:6px">
+<sc-for list="{{ attach }}" as="f"><div style="display:flex;align-items:center;gap:8px;padding:5px 6px 5px 5px;border:1px solid #ececea;border-radius:12px;max-width:300px">
+<div style="width:30px;height:30px;border-radius:8px;background:{{ f.bg }};color:{{ f.fg }};display:flex;align-items:center;justify-content:center;font:600 9px 'JetBrains Mono',monospace;flex:none">{{ f.ext }}</div>
+<div style="min-width:0"><div style="font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ f.name }}</div><div style="font-size:11px;color:#8a8a84">{{ f.meta }}</div></div>
+<button onClick="{{ f.remove }}" title="Убрать" style="width:22px;height:22px;border:0;background:transparent;border-radius:6px;cursor:pointer;color:#8a8a84;display:flex;align-items:center;justify-content:center;flex:none" style-hover="background:#f0f0ed"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</div></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ notRec }}" hint-placeholder-val="{{ true }}">
+<textarea value="{{ draft }}" onChange="{{ onDraft }}" onKeyDown="{{ onKey }}" rows="2" placeholder="Отправить сообщение" style="border:0;resize:none;font-size:14.5px;line-height:1.5;padding:4px 2px;background:transparent;width:100%"></textarea>
+</sc-if>
+<sc-if value="{{ rec }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;align-items:center;gap:12px;height:51px;padding:0 2px">
+<span style="width:8px;height:8px;border-radius:50%;background:oklch(0.58 0.19 25);flex:none"></span>
+<span style="font:500 13px 'JetBrains Mono',monospace;color:#3a3a37;width:38px">{{ recTime }}</span>
+<div style="flex:1;display:flex;align-items:center;gap:3px;height:32px;overflow:hidden"><sc-for list="{{ bars }}" as="br"><span style="width:3px;flex:none;border-radius:2px;background:#1d1d1b;height:{{ br.h }}px;transition:height .09s"></span></sc-for></div>
+<span style="font-size:12.5px;color:#8a8a84">Слушаю… нажмите ■, чтобы распознать</span>
+</div>
+</sc-if>
+<div style="display:flex;align-items:center;gap:6px">
+<button onClick="{{ openAttach }}" title="Прикрепить файл" style="width:34px;height:34px;border:0;background:transparent;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#55554f" style-hover="background:#f0f0ed"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+<button onClick="{{ openFormats }}" title="Поддерживаемые форматы" style="width:26px;height:26px;border:0;background:transparent;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#a3a39d" style-hover="color:#1d1d1b;background:#f0f0ed"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.5v.3"></path><path d="M12 16.8h.01"></path></svg></button>
+<div style="flex:1"></div>
+<button onClick="{{ openAgent }}" style="display:flex;align-items:center;gap:7px;height:32px;padding:0 10px 0 6px;border:0;background:transparent;border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;max-width:240px" style-hover="background:#f3f3f1">
+<sc-if value="{{ agentPillShow }}"><span style="width:20px;height:20px;border-radius:6px;background:{{ agentPill.tileBg }};color:{{ agentPill.tileFg }};display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:600;flex:none">{{ agentPill.abbr }}</span></sc-if>
+<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ agentLabel }}</span>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a8a84" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="m6 9 6 6 6-6"></path></svg>
+</button>
+<button onClick="{{ openModel }}" style="display:flex;align-items:center;gap:6px;height:32px;padding:0 10px;border:0;background:transparent;border-radius:10px;cursor:pointer;font-size:13px;color:#55554f" style-hover="background:#f3f3f1">{{ modelLabel }}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a8a84" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></button>
+<button onClick="{{ toggleRec }}" title="Голосовой ввод" style="width:34px;height:34px;border:0;background:{{ micBg }};color:{{ micColor }};border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="opacity:.85">
+<sc-if value="{{ notRec }}" hint-placeholder-val="{{ true }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg></sc-if>
+<sc-if value="{{ rec }}" hint-placeholder-val="{{ false }}"><svg width="12" height="12" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3" fill="currentColor"></rect></svg></sc-if>
+</button>
+<button onClick="{{ send }}" title="Отправить" style="width:34px;height:34px;border:0;background:{{ sendBg }};color:#fff;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"></path></svg></button>
+</div>
+</div>
+</div>
+<div style="font-size:11.5px;color:#9a9a94;padding-top:8px;text-align:center">КЕРН — ИИ может ошибаться. Проверяйте важные данные по первоисточникам.</div>
+</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ isAgents }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;overflow-y:auto">
+<div style="max-width:1140px;margin:0 auto;padding:40px 32px 56px;display:flex;flex-direction:column;gap:26px">
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap">
+<div style="max-width:560px"><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-.015em">Агенты</h1><p style="margin:8px 0 0;color:#6b6b66;line-height:1.55;text-wrap:pretty">Специализированные ассистенты для задач upstream. Откройте агента, чтобы посмотреть описание, или сразу начните с ним диалог.</p></div>
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+<div style="display:flex;align-items:center;gap:8px;height:38px;padding:0 12px;border:1px solid #e6e6e2;border-radius:10px;width:240px;color:#8a8a84"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input value="{{ agentSearch }}" onChange="{{ onAgentSearch }}" placeholder="Поиск агента" style="border:0;flex:1;min-width:0;font-size:13.5px;background:transparent"></div>
+<button onClick="{{ goBuilder }}" style="height:38px;padding:0 16px;border:0;border-radius:10px;background:#1d1d1b;color:#fff;font-size:13.5px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:8px" style-hover="background:#3a3a37"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Создать агента</button>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">
+<sc-for list="{{ agentCards }}" as="a" hint-placeholder-count="5">
+<div onClick="{{ a.open }}" style="border:1px solid #ececea;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;cursor:pointer;background:#fff;transition:box-shadow .15s,border-color .15s" style-hover="border-color:#d9d9d4;box-shadow:0 6px 22px rgba(0,0,0,.05)">
+<div style="display:flex;align-items:center;gap:12px">
+<div style="width:42px;height:42px;border-radius:12px;background:{{ a.tileBg }};color:{{ a.tileFg }};display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;flex:none">{{ a.abbr }}</div>
+<div style="min-width:0"><div style="font-size:15px;font-weight:600">{{ a.name }}</div><div style="font-size:12px;color:#8a8a84">{{ a.author }} · v{{ a.ver }}</div></div>
+</div>
+<p style="margin:0;font-size:13.5px;line-height:1.55;color:#55554f;text-wrap:pretty;flex:1">{{ a.short }}</p>
+<div style="display:flex;flex-wrap:wrap;gap:4px"><sc-for list="{{ a.formats }}" as="fx"><span style="font:500 11px 'JetBrains Mono',monospace;padding:3px 7px;border-radius:6px;background:#f3f3f1;color:#55554f">{{ fx }}</span></sc-for></div>
+<div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid #f0f0ed;padding-top:12px">
+<span style="font-size:12px;color:#8a8a84">{{ a.runs }} запусков за 30 дней</span>
+<button onClick="{{ a.chat }}" style="height:30px;padding:0 12px;border:1px solid #e3e3df;border-radius:8px;background:#fff;font-size:12.5px;cursor:pointer" style-hover="background:#1d1d1b;color:#fff;border-color:#1d1d1b">Открыть в чате</button>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ isAgent }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;overflow-y:auto">
+<div style="max-width:1080px;margin:0 auto;padding:28px 32px 56px;display:flex;flex-direction:column;gap:28px">
+<button onClick="{{ goAgents }}" style="align-self:flex-start;border:0;background:transparent;padding:4px 0;display:flex;align-items:center;gap:6px;color:#6b6b66;font-size:13px;cursor:pointer" style-hover="color:#1d1d1b"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>Все агенты</button>
+<div style="display:flex;gap:18px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap">
+<div style="display:flex;gap:16px;align-items:center;min-width:0">
+<div style="width:60px;height:60px;border-radius:16px;background:{{ ag.tileBg }};color:{{ ag.tileFg }};display:flex;align-items:center;justify-content:center;font-weight:600;font-size:19px;flex:none">{{ ag.abbr }}</div>
+<div style="min-width:0"><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-.015em">{{ ag.name }}</h1><p style="margin:6px 0 0;color:#6b6b66;line-height:1.5;max-width:620px;text-wrap:pretty">{{ ag.short }}</p></div>
+</div>
+<div style="display:flex;gap:8px">
+<button onClick="{{ agentEdit }}" style="height:40px;padding:0 16px;border:1px solid #e3e3df;border-radius:10px;background:#fff;font-size:13.5px;cursor:pointer" style-hover="background:#f6f6f4">Открыть сценарий</button>
+<button onClick="{{ agentChat }}" style="height:40px;padding:0 18px;border:0;border-radius:10px;background:#1d1d1b;color:#fff;font-size:13.5px;font-weight:500;cursor:pointer" style-hover="background:#3a3a37">Начать диалог →</button>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:32px;align-items:start">
+<div style="display:flex;flex-direction:column;gap:30px;min-width:0">
+<section style="display:flex;flex-direction:column;gap:10px"><h2 style="margin:0;font-size:13px;font-weight:600;color:#8a8a84;text-transform:uppercase;letter-spacing:.06em">Описание</h2><p style="margin:0;line-height:1.7;font-size:15px;text-wrap:pretty">{{ ag.desc }}</p></section>
+<section style="display:flex;flex-direction:column;gap:10px"><h2 style="margin:0;font-size:13px;font-weight:600;color:#8a8a84;text-transform:uppercase;letter-spacing:.06em">Входные данные</h2>
+<div style="border:1px solid #ececea;border-radius:12px;overflow:hidden">
+<sc-for list="{{ ag.inputs }}" as="r"><div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) 110px;gap:12px;align-items:center;padding:11px 14px;border-bottom:1px solid #f0f0ed;font-size:13.5px"><span style="font-weight:500">{{ r.name }}</span><span style="font:12.5px 'JetBrains Mono',monospace;color:#55554f">{{ r.formats }}</span><span style="justify-self:end;font-size:11.5px;padding:3px 8px;border-radius:999px;background:{{ r.reqBg }};color:{{ r.reqFg }}">{{ r.req }}</span></div></sc-for>
+</div>
+</section>
+<sc-if value="{{ ag.hasSchema }}">
+<section style="display:flex;flex-direction:column;gap:10px">
+<h2 style="margin:0;font-size:13px;font-weight:600;color:#8a8a84;text-transform:uppercase;letter-spacing:.06em">Структура протокола — передаётся на вход</h2>
+<p style="margin:0;color:#6b6b66;font-size:13.5px;line-height:1.55;text-wrap:pretty">Агент заполняет протокол строго по этой структуре. Поля можно изменить под регламент подразделения — например, добавить «Бюджет» или «Согласующих».</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px">
+<sc-for list="{{ ag.schema }}" as="sf"><div style="border:1px solid #ececea;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="display:flex;align-items:baseline;gap:8px"><span style="font:500 11px 'JetBrains Mono',monospace;color:#a3a39d">{{ sf.n }}</span><span style="font-weight:600;font-size:14px">{{ sf.name }}</span></span><span style="font-size:10.5px;padding:2px 7px;border-radius:999px;background:{{ sf.reqBg }};color:{{ sf.reqFg }};white-space:nowrap">{{ sf.req }}</span></div>
+<div style="font-size:12.5px;color:#6b6b66;line-height:1.45">{{ sf.desc }}</div>
+</div></sc-for>
+</div>
+<sc-if value="{{ ag.hasJson }}"><pre style="margin:4px 0 0;background:#f9f9f8;border:1px solid #ececea;border-radius:12px;padding:14px 16px;font:12.5px/1.6 'JetBrains Mono',monospace;color:#3a3a37;overflow-x:auto">{{ ag.json }}</pre></sc-if>
+</section>
+</sc-if>
+<section style="display:flex;flex-direction:column;gap:10px"><h2 style="margin:0;font-size:13px;font-weight:600;color:#8a8a84;text-transform:uppercase;letter-spacing:.06em">Результат</h2>
+<div style="display:flex;flex-direction:column">
+<sc-for list="{{ ag.out }}" as="o"><div style="display:grid;grid-template-columns:200px minmax(0,1fr);gap:14px;padding:10px 0;border-bottom:1px solid #f0f0ed;font-size:13.5px"><span style="font-weight:500">{{ o.name }}</span><span style="color:#55554f">{{ o.desc }}</span></div></sc-for>
+</div>
+</section>
+</div>
+<aside style="display:flex;flex-direction:column;gap:16px;position:sticky;top:0">
+<div style="border:1px solid #ececea;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;font-size:13px">
+<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:#8a8a84">Модель</span><span style="font-weight:500;text-align:right">{{ ag.model }}</span></div>
+<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:#8a8a84">Автор</span><span style="text-align:right">{{ ag.author }}</span></div>
+<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:#8a8a84">Версия</span><span>{{ ag.ver }} · {{ ag.updated }}</span></div>
+<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:#8a8a84">Запусков, 30 дн.</span><span>{{ ag.runs }}</span></div>
+<div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid #f0f0ed;padding-top:12px"><span style="color:#8a8a84">Подключённые коллекции</span><div style="display:flex;flex-wrap:wrap;gap:4px"><sc-for list="{{ ag.colls }}" as="cl"><span style="font-size:12px;padding:4px 8px;border-radius:7px;background:#f3f3f1">{{ cl }}</span></sc-for></div></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="font-size:12px;color:#8a8a84;padding:0 2px">Примеры запросов</div>
+<sc-for list="{{ ag.examples }}" as="ex"><button onClick="{{ ex.onClick }}" style="border:1px solid #ececea;background:#fff;border-radius:10px;padding:10px 12px;font-size:13px;text-align:left;cursor:pointer;line-height:1.4;color:#3a3a37" style-hover="background:#f6f6f4">{{ ex.text }}</button></sc-for>
+</div>
+</aside>
+</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ isBuilder }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column">
+<header style="height:56px;flex:none;border-bottom:1px solid #ececea;display:flex;align-items:center;gap:10px;padding:0 14px;flex-wrap:nowrap">
+<button onClick="{{ backFromBuilder }}" title="Назад" style="width:34px;height:34px;border:0;background:transparent;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#55554f" style-hover="background:#f0f0ed"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg></button>
+<input value="{{ agentName }}" onChange="{{ onAgentName }}" style="border:1px solid transparent;border-radius:8px;padding:6px 8px;font-size:15px;font-weight:600;width:220px;background:transparent" style-hover="border-color:#e3e3df">
+<span style="font-size:11.5px;padding:3px 8px;border-radius:999px;background:#f3f3f1;color:#6b6b66">Черновик · сохранено</span>
+<div style="flex:1"></div>
+<div style="display:flex;align-items:center;border:1px solid #e6e6e2;border-radius:9px;height:34px;overflow:hidden">
+<button onClick="{{ zoomOut }}" style="width:32px;height:100%;border:0;background:#fff;cursor:pointer;font-size:16px" style-hover="background:#f3f3f1">−</button>
+<button onClick="{{ zoomFit }}" style="min-width:50px;height:100%;border:0;border-left:1px solid #ececea;border-right:1px solid #ececea;background:#fff;cursor:pointer;font:500 12px 'JetBrains Mono',monospace">{{ zoomPct }}</button>
+<button onClick="{{ zoomIn }}" style="width:32px;height:100%;border:0;background:#fff;cursor:pointer;font-size:16px" style-hover="background:#f3f3f1">+</button>
+</div>
+<button onClick="{{ runTest }}" style="height:34px;padding:0 14px;border:1px solid #e3e3df;border-radius:9px;background:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:7px" style-hover="background:#f6f6f4"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M6 4v16l14-8Z" fill="currentColor"></path></svg>{{ runLabel }}</button>
+<button onClick="{{ publish }}" style="height:34px;padding:0 16px;border:0;border-radius:9px;background:#1d1d1b;color:#fff;font-size:13px;font-weight:500;cursor:pointer" style-hover="background:#3a3a37">Опубликовать</button>
+</header>
+<div style="flex:1;min-height:0;display:flex">
+<aside style="width:230px;flex:none;border-right:1px solid #ececea;overflow-y:auto;padding:14px 10px;display:flex;flex-direction:column;gap:14px;background:#fff">
+<div style="font-size:12px;color:#8a8a84;padding:0 6px;line-height:1.45">Нажмите на блок — он добавится после выбранного узла</div>
+<sc-for list="{{ palette }}" as="pg" hint-placeholder-count="5">
+<div style="display:flex;flex-direction:column;gap:2px">
+<div style="font-size:11px;font-weight:600;color:#9a9a94;text-transform:uppercase;letter-spacing:.06em;padding:0 6px 4px">{{ pg.group }}</div>
+<sc-for list="{{ pg.items }}" as="pi"><button onClick="{{ pi.onClick }}" style="display:flex;align-items:center;gap:9px;padding:6px;border:0;background:transparent;border-radius:8px;cursor:pointer;text-align:left;font-size:13px" style-hover="background:#f3f3f1">
+<span style="width:26px;height:26px;border-radius:7px;background:{{ pi.tileBg }};color:{{ pi.tileFg }};display:flex;align-items:center;justify-content:center;flex:none">
+<sc-if value="{{ pi.isTrig }}"><svg width="13" height="13" viewBox="0 0 24 24"><path d="M7 5v14l11-7Z" fill="currentColor"></path></svg></sc-if>
+<sc-if value="{{ pi.isAI }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l1.9 5.6L19.5 10.5l-5.6 1.9L12 18l-1.9-5.6L4.5 10.5l5.6-1.9Z"></path></svg></sc-if>
+<sc-if value="{{ pi.isData }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="6" rx="7" ry="3"></ellipse><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"></path></svg></sc-if>
+<sc-if value="{{ pi.isLogic }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="6" r="2.5"></circle><circle cx="6" cy="18" r="2.5"></circle><circle cx="18" cy="8" r="2.5"></circle><path d="M6 8.5v7M18 10.5c0 4-6 3-10.5 6"></path></svg></sc-if>
+<sc-if value="{{ pi.isOut }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"></path></svg></sc-if>
+</span>{{ pi.title }}</button></sc-for>
+</div>
+</sc-for>
+</aside>
+<div onMouseMove="{{ canvasMove }}" onMouseUp="{{ canvasUp }}" onMouseLeave="{{ canvasUp }}" onMouseDown="{{ canvasDown }}" style="flex:1;min-width:0;position:relative;overflow:auto;cursor:grab;user-select:none;background-color:#fafaf9;background-image:radial-gradient(#d6d6d0 1px,transparent 1px);background-size:20px 20px">
+<div style="width:{{ canvasW }}px;height:{{ canvasH }}px;position:relative">
+<div style="position:absolute;left:0;top:0;width:1560px;height:640px;transform:{{ zoomT }};transform-origin:0 0">
+<sc-for list="{{ edges }}" as="e">
+<svg width="1560" height="640" style="position:absolute;left:0;top:0;overflow:visible;pointer-events:none"><path sc-camel-d="{{ e.d }}" fill="none" stroke="{{ e.color }}" stroke-width="2" stroke-dasharray="{{ e.dash }}"></path></svg>
+<sc-if value="{{ e.hasLabel }}"><div style="position:absolute;left:{{ e.lx }}px;top:{{ e.ly }}px;font-size:11px;color:#6b6b66;background:#fafaf9;padding:0 4px;border-radius:4px;pointer-events:none">{{ e.label }}</div></sc-if>
+</sc-for>
+<sc-for list="{{ nodes }}" as="n">
+<div onMouseDown="{{ n.onDown }}" style="position:absolute;left:{{ n.x }}px;top:{{ n.y }}px;width:{{ n.w }}px;height:{{ n.h }}px;cursor:grab;user-select:none">
+<sc-if value="{{ n.isSub }}">
+<div style="width:64px;height:64px;border-radius:50%;background:#fff;border:{{ n.border }};box-shadow:{{ n.shadow }};display:flex;align-items:center;justify-content:center">
+<span style="width:34px;height:34px;border-radius:50%;background:{{ n.tileBg }};color:{{ n.tileFg }};display:flex;align-items:center;justify-content:center">
+<sc-if value="{{ n.isModelK }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l1.9 5.6L19.5 10.5l-5.6 1.9L12 18l-1.9-5.6L4.5 10.5l5.6-1.9Z"></path></svg></sc-if>
+<sc-if value="{{ n.isMemK }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="6" rx="7" ry="3"></ellipse><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"></path></svg></sc-if>
+<sc-if value="{{ n.isToolK }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4Z"></path></svg></sc-if>
+</span>
+</div>
+<div style="position:absolute;top:-5px;left:27px;width:10px;height:10px;transform:rotate(45deg);background:#fff;border:1.5px solid #8a8a84"></div>
+<div style="position:absolute;top:70px;left:-38px;width:140px;text-align:center;font-size:11.5px;line-height:1.3"><div style="font-weight:500">{{ n.title }}</div><div style="color:#8a8a84">{{ n.sub }}</div></div>
+</sc-if>
+<sc-if value="{{ n.isReg }}">
+<div style="height:100%;background:#fff;border:{{ n.border }};border-radius:12px;box-shadow:{{ n.shadow }};display:flex;align-items:center;gap:10px;padding:0 12px">
+<span style="width:36px;height:36px;border-radius:10px;background:{{ n.tileBg }};color:{{ n.tileFg }};display:flex;align-items:center;justify-content:center;flex:none">
+<sc-if value="{{ n.isTrig }}"><svg width="15" height="15" viewBox="0 0 24 24"><path d="M7 5v14l11-7Z" fill="currentColor"></path></svg></sc-if>
+<sc-if value="{{ n.isAI }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l1.9 5.6L19.5 10.5l-5.6 1.9L12 18l-1.9-5.6L4.5 10.5l5.6-1.9Z"></path></svg></sc-if>
+<sc-if value="{{ n.isData }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="6" rx="7" ry="3"></ellipse><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"></path></svg></sc-if>
+<sc-if value="{{ n.isLogic }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="6" r="2.5"></circle><circle cx="6" cy="18" r="2.5"></circle><circle cx="18" cy="8" r="2.5"></circle><path d="M6 8.5v7M18 10.5c0 4-6 3-10.5 6"></path></svg></sc-if>
+<sc-if value="{{ n.isOut }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"></path></svg></sc-if>
+</span>
+<div style="min-width:0"><div style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ n.title }}</div><div style="font-size:11.5px;color:#8a8a84;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ n.sub }}</div></div>
+</div>
+<sc-if value="{{ n.hasIn }}"><div style="position:absolute;left:-6px;top:50%;margin-top:-6px;width:12px;height:12px;border-radius:50%;background:#fff;border:1.5px solid #8a8a84"></div></sc-if>
+<sc-if value="{{ n.hasOut }}"><div style="position:absolute;right:-6px;top:50%;margin-top:-6px;width:12px;height:12px;border-radius:50%;background:#8a8a84;border:2px solid #fff"></div></sc-if>
+<sc-if value="{{ n.isIf }}"><div style="position:absolute;right:-6px;top:30%;margin-top:-6px;width:12px;height:12px;border-radius:50%;background:#8a8a84;border:2px solid #fff"></div><div style="position:absolute;right:-6px;top:70%;margin-top:-6px;width:12px;height:12px;border-radius:50%;background:#8a8a84;border:2px solid #fff"></div></sc-if>
+<sc-if value="{{ n.isAgent }}">
+<div style="position:absolute;left:18%;bottom:-5px;margin-left:-5px;width:10px;height:10px;transform:rotate(45deg);background:#fff;border:1.5px solid #8a8a84"></div>
+<div style="position:absolute;left:50%;bottom:-5px;margin-left:-5px;width:10px;height:10px;transform:rotate(45deg);background:#fff;border:1.5px solid #8a8a84"></div>
+<div style="position:absolute;left:82%;bottom:-5px;margin-left:-5px;width:10px;height:10px;transform:rotate(45deg);background:#fff;border:1.5px solid #8a8a84"></div>
+<div style="position:absolute;top:calc(100% + 8px);left:0;right:0;display:grid;grid-template-columns:repeat(3,1fr);font-size:10.5px;color:#8a8a84;text-align:center;pointer-events:none"><span>Модель</span><span>Память</span><span>Инструменты</span></div>
+</sc-if>
+<sc-if value="{{ n.isDone }}"><div style="position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:oklch(0.6 0.13 150);color:#fff;display:flex;align-items:center;justify-content:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"></path></svg></div></sc-if>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+<div style="position:sticky;left:12px;bottom:12px;display:inline-flex;margin:0 0 12px 12px;font-size:12px;color:#6b6b66;background:#fff;border:1px solid #ececea;border-radius:8px;padding:6px 10px">Перетаскивайте узлы · сплошные линии — поток данных, пунктир — подключения агента</div>
+</div>
+<aside style="width:300px;flex:none;border-left:1px solid #ececea;overflow-y:auto;background:#fff">
+<sc-if value="{{ hasSel }}" hint-placeholder-val="{{ true }}">
+<div style="padding:16px;display:flex;flex-direction:column;gap:18px">
+<div style="display:flex;align-items:center;gap:10px"><span style="flex:none;height:28px;padding:0 10px;border-radius:8px;background:{{ selNode.tileBg }};color:{{ selNode.tileFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;white-space:nowrap">{{ selNode.cat }}</span><div style="min-width:0"><div style="font-weight:600">{{ selNode.title }}</div><div style="font-size:12px;color:#8a8a84">Параметры узла</div></div></div>
+<sc-for list="{{ selNode.fields }}" as="f">
+<div style="display:flex;flex-direction:column;gap:7px">
+<div style="display:flex;justify-content:space-between;font-size:12.5px;color:#55554f;font-weight:500"><span>{{ f.label }}</span><span style="font-family:'JetBrains Mono',monospace;color:#1d1d1b">{{ f.display }}</span></div>
+<sc-if value="{{ f.isInput }}"><input value="{{ f.value }}" onChange="{{ f.onChange }}" style="height:36px;border:1px solid #e3e3df;border-radius:9px;padding:0 10px;font-size:13px" style-focus="border-color:#1d1d1b"></sc-if>
+<sc-if value="{{ f.isArea }}"><textarea value="{{ f.value }}" onChange="{{ f.onChange }}" rows="6" style="border:1px solid #e3e3df;border-radius:9px;padding:9px 10px;font-size:12.5px;line-height:1.5;resize:vertical" style-focus="border-color:#1d1d1b"></textarea></sc-if>
+<sc-if value="{{ f.isRange }}"><input type="range" min="{{ f.min }}" max="{{ f.max }}" step="{{ f.step }}" value="{{ f.value }}" onChange="{{ f.onChange }}" style="width:100%;accent-color:#1d1d1b"></sc-if>
+<sc-if value="{{ f.isPills }}"><div style="display:flex;flex-wrap:wrap;gap:5px"><sc-for list="{{ f.pills }}" as="p"><button onClick="{{ p.onClick }}" style="padding:5px 10px;border-radius:8px;border:1px solid {{ p.border }};background:{{ p.bg }};color:{{ p.color }};font-size:12px;cursor:pointer">{{ p.label }}</button></sc-for></div></sc-if>
+</div>
+</sc-for>
+<button onClick="{{ delNode }}" style="align-self:flex-start;border:0;background:transparent;color:oklch(0.55 0.18 25);font-size:12.5px;cursor:pointer;padding:4px 0">Удалить узел</button>
+</div>
+</sc-if>
+<sc-if value="{{ noSel }}" hint-placeholder-val="{{ false }}"><div style="padding:24px 18px;color:#8a8a84;font-size:13px;line-height:1.55">Выберите узел на холсте, чтобы настроить его параметры.</div></sc-if>
+</aside>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ isColl }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column">
+<header style="flex:none;border-bottom:1px solid #ececea;display:flex;align-items:center;gap:12px;padding:12px 20px;flex-wrap:wrap">
+<h1 style="margin:0;font-size:18px;font-weight:600">Коллекции</h1>
+<div style="display:flex;gap:2px;background:#f3f3f1;border-radius:9px;padding:3px">
+<sc-for list="{{ collTabs }}" as="t"><button onClick="{{ t.onClick }}" style="height:28px;padding:0 12px;border:0;border-radius:7px;background:{{ t.bg }};color:{{ t.color }};box-shadow:{{ t.shadow }};font-size:12.5px;cursor:pointer">{{ t.label }}</button></sc-for>
+</div>
+<div style="flex:1"></div>
+<div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border:1px solid #e6e6e2;border-radius:10px;width:240px;color:#8a8a84"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input value="{{ collSearch }}" onChange="{{ onCollSearch }}" placeholder="Поиск по доменам и коллекциям" style="border:0;flex:1;min-width:0;font-size:13px;background:transparent"></div>
+<button onClick="{{ openCreateDomain }}" style="height:36px;padding:0 14px;border:1px solid #e3e3df;border-radius:10px;background:#fff;font-size:13px;cursor:pointer" style-hover="background:#f6f6f4">+ Домен</button>
+<button onClick="{{ openCreateColl }}" style="height:36px;padding:0 14px;border:0;border-radius:10px;background:#1d1d1b;color:#fff;font-size:13px;font-weight:500;cursor:pointer" style-hover="background:#3a3a37">+ Коллекция</button>
+</header>
+<div style="flex:1;min-height:0;display:flex">
+<div style="width:340px;flex:none;border-right:1px solid #ececea;overflow-y:auto;padding:10px 8px">
+<sc-if value="{{ treeEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:24px 12px;color:#8a8a84;font-size:13px">Ничего не найдено. Отметьте звёздочкой домены или коллекции, чтобы они появились в избранном.</div></sc-if>
+<sc-for list="{{ tree }}" as="d" hint-placeholder-count="6">
+<div style="display:flex;flex-direction:column">
+<div onClick="{{ d.toggle }}" style="display:flex;align-items:center;gap:8px;padding:8px 8px;border-radius:9px;cursor:pointer" style-hover="background:#f3f3f1">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a8a84" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate({{ d.rot }}deg);transition:transform .15s;flex:none"><path d="m9 6 6 6-6 6"></path></svg>
+<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#55554f" stroke-width="1.7" stroke-linejoin="round" style="flex:none"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>
+<div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ d.name }}</div><div style="font-size:11.5px;color:#9a9a94">{{ d.count }} · {{ d.docs }} док.</div></div>
+<button onClick="{{ d.fav }}" title="Избранное" style="width:28px;height:28px;border:0;background:transparent;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none" style-hover="background:#ececea"><svg width="16" height="16" viewBox="0 0 24 24" fill="{{ d.starFill }}" stroke="{{ d.starStroke }}" stroke-width="1.7" stroke-linejoin="round"><path d="m12 3 2.8 5.8 6.2.8-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.8Z"></path></svg></button>
+</div>
+<sc-if value="{{ d.open }}">
+<div style="display:flex;flex-direction:column;padding:2px 0 6px 30px;gap:1px">
+<sc-for list="{{ d.colls }}" as="c"><div onClick="{{ c.onClick }}" style="display:flex;align-items:center;gap:8px;padding:6px 6px 6px 10px;border-radius:8px;background:{{ c.bg }};cursor:pointer" style-hover="background:#f0f0ed">
+<span style="flex:1;min-width:0;font-size:13px;font-weight:{{ c.weight }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</span>
+<span style="font:11px 'JetBrains Mono',monospace;color:#9a9a94">{{ c.docs }}</span>
+<button onClick="{{ c.fav }}" title="Избранное" style="width:24px;height:24px;border:0;background:transparent;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none"><svg width="14" height="14" viewBox="0 0 24 24" fill="{{ c.starFill }}" stroke="{{ c.starStroke }}" stroke-width="1.7" stroke-linejoin="round"><path d="m12 3 2.8 5.8 6.2.8-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.8Z"></path></svg></button>
+</div></sc-for>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+<div style="flex:1;min-width:0;overflow-y:auto">
+<sc-if value="{{ csHas }}" hint-placeholder-val="{{ true }}">
+<div style="max-width:920px;padding:30px 36px 48px;display:flex;flex-direction:column;gap:26px">
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="font-size:12.5px;color:#8a8a84">{{ cs.domain }} /</div>
+<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
+<h2 style="margin:0;font-size:26px;font-weight:600;letter-spacing:-.015em">{{ cs.name }}</h2>
+<div style="display:flex;gap:8px">
+<button onClick="{{ cs.fav }}" style="height:36px;padding:0 12px;border:1px solid #e3e3df;border-radius:10px;background:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px" style-hover="background:#f6f6f4"><svg width="15" height="15" viewBox="0 0 24 24" fill="{{ cs.starFill }}" stroke="{{ cs.starStroke }}" stroke-width="1.7" stroke-linejoin="round"><path d="m12 3 2.8 5.8 6.2.8-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.8Z"></path></svg>{{ cs.favLabel }}</button>
+<button onClick="{{ uploadDocs }}" style="height:36px;padding:0 14px;border:1px solid #e3e3df;border-radius:10px;background:#fff;font-size:13px;cursor:pointer" style-hover="background:#f6f6f4">Загрузить документы</button>
+<button onClick="{{ askColl }}" style="height:36px;padding:0 14px;border:0;border-radius:10px;background:#1d1d1b;color:#fff;font-size:13px;font-weight:500;cursor:pointer" style-hover="background:#3a3a37">Спросить по коллекции →</button>
+</div>
+</div>
+<p style="margin:0;color:#55554f;line-height:1.6;max-width:680px;text-wrap:pretty">{{ cs.desc }}</p>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border:1px solid #ececea;border-radius:14px;overflow:hidden">
+<sc-for list="{{ cs.stats }}" as="st"><div style="padding:14px 16px;border-right:1px solid #f0f0ed"><div style="font-size:12px;color:#8a8a84">{{ st.label }}</div><div style="font-size:18px;font-weight:600;margin-top:4px">{{ st.value }}</div></div></sc-for>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px 28px;font-size:13px">
+<sc-for list="{{ cs.meta }}" as="mt"><div><span style="color:#8a8a84">{{ mt.label }}: </span>{{ mt.value }}</div></sc-for>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="font-size:13px;font-weight:600;color:#8a8a84;text-transform:uppercase;letter-spacing:.06em">Последние документы</div>
+<sc-if value="{{ cs.hasDocs }}">
+<div style="border:1px solid #ececea;border-radius:12px;overflow:hidden;font-size:13px">
+<div style="display:grid;grid-template-columns:minmax(0,2.4fr) 90px 100px 150px;gap:12px;padding:9px 14px;background:#f9f9f8;color:#6b6b66;font-weight:500"><span>Название</span><span>Размер</span><span>Обновлён</span><span>Индексация</span></div>
+<sc-for list="{{ cs.docs }}" as="dc"><div style="display:grid;grid-template-columns:minmax(0,2.4fr) 90px 100px 150px;gap:12px;padding:9px 14px;border-top:1px solid #f0f0ed;align-items:center">
+<span style="display:flex;align-items:center;gap:10px;min-width:0"><span style="width:30px;height:30px;border-radius:8px;background:{{ dc.bg }};color:{{ dc.fg }};display:flex;align-items:center;justify-content:center;font:600 9px 'JetBrains Mono',monospace;flex:none">{{ dc.ext }}</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ dc.name }}</span></span>
+<span style="color:#55554f">{{ dc.size }}</span><span style="color:#55554f">{{ dc.updated }}</span>
+<span style="display:flex;align-items:center;gap:6px;color:#55554f"><span style="width:7px;height:7px;border-radius:50%;background:{{ dc.statusColor }}"></span>{{ dc.status }}</span>
+</div></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ cs.noDocs }}"><div style="border:1px dashed #dcdcd6;border-radius:12px;padding:28px;text-align:center;color:#8a8a84;font-size:13px">Коллекция пуста — загрузите документы или подключите источник</div></sc-if>
+</div>
+</div>
+</sc-if>
+</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ isInt }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column">
+<sc-if value="{{ intCatalog }}">
+<header style="flex:none;border-bottom:1px solid #ececea;display:flex;align-items:center;gap:12px;padding:12px 24px;min-height:57px"><h1 style="margin:0;font-size:18px;font-weight:600">Интеграции</h1><span style="font-size:13px;color:#8a8a84">Подключение корпоративных систем к агентам платформы</span></header>
+<div style="flex:1;min-height:0;overflow-y:auto"><div style="max-width:1100px;margin:0 auto;padding:24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">
+<sc-for list="{{ integrations }}" as="it" hint-placeholder-count="5"><div onClick="{{ it.open }}" style="border:1px solid #ececea;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;cursor:pointer;background:#fff" style-hover="border-color:#d6d6d1;box-shadow:0 4px 14px rgba(0,0,0,.05)">
+<div style="display:flex;align-items:center;gap:12px"><span style="width:40px;height:40px;border-radius:10px;background:{{ it.tileBg }};color:{{ it.tileFg }};display:flex;align-items:center;justify-content:center;font:600 13px 'JetBrains Mono',monospace;flex:none">{{ it.abbr }}</span><span style="flex:1;font-weight:600;font-size:14.5px">{{ it.name }}</span><span style="font-size:11.5px;padding:3px 8px;border-radius:6px;background:{{ it.statusBg }};color:{{ it.statusFg }};white-space:nowrap">{{ it.statusLabel }}</span></div>
+<div style="font-size:13px;color:#6b6b66;line-height:1.45;flex:1">{{ it.desc }}</div>
+<div style="font-size:13px;font-weight:500;color:#c2571c">{{ it.btnLabel }} →</div>
+</div></sc-for>
+</div></div>
+</sc-if>
+<sc-if value="{{ intMail }}">
+<header style="flex:none;border-bottom:1px solid #ececea;display:flex;align-items:center;gap:12px;padding:10px 24px;min-height:57px;flex-wrap:wrap">
+<button onClick="{{ goInt }}" style="border:0;background:transparent;padding:0;font-size:13.5px;color:#8a8a84;cursor:pointer" style-hover="color:#1d1d1b">Интеграции</button><span style="color:#c9c9c4">/</span>
+<h1 style="margin:0;font-size:18px;font-weight:600">Корпоративная почта</h1>
+<span style="font-size:12px;padding:3px 8px;border-radius:6px;background:{{ mailStatus.bg }};color:{{ mailStatus.fg }}">{{ mailStatus.label }}</span>
+<div style="flex:1"></div>
+<span style="display:flex;align-items:center;gap:8px;font-size:13px;color:#55554f">Агент работает<button onClick="{{ toggleMail }}" style="width:38px;height:22px;border:0;border-radius:11px;background:{{ mailToggleBg }};position:relative;cursor:pointer;flex:none"><span style="position:absolute;top:2px;left:{{ mailKnob }}px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s"></span></button></span>
+<a href="https://mail.corp.local/owa" target="_blank" rel="noopener" style="height:34px;padding:0 14px;border:1px solid #e3e3df;border-radius:8px;display:flex;align-items:center;gap:7px;font-size:13px;text-decoration:none;color:#1d1d1b" style-hover="background:#f7f7f5">Открыть почту<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"></path></svg></a>
+</header>
+<div style="flex:1;min-height:0;overflow-y:auto"><div style="max-width:1360px;margin:0 auto;padding:20px 24px 32px;display:flex;flex-direction:column;gap:18px">
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;color:#8a8a84"><span style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:oklch(0.62 0.15 150)"></span>Exchange · irina@example.invalid</span><span>·</span><span>Синхронизация в реальном времени, последняя — 12 с назад</span><span>·</span><span>Папки: Входящие, Архив, Удалённые</span></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+<sc-for list="{{ mailKpis }}" as="k" hint-placeholder-count="2"><div style="border:1px solid #ececea;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px">
+<span style="font-size:12.5px;color:#7a7a74">{{ k.label }}</span><span style="font-size:26px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums">{{ k.value }}</span>
+<div style="height:4px;background:#f0f0ed;border-radius:2px"><div style="height:100%;width:{{ k.w }}%;background:oklch(0.62 0.15 150);border-radius:2px"></div></div>
+<span style="font-size:12px;color:#6b6b66">{{ k.goal }}</span>
+</div></sc-for>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start">
+<div style="flex:2 1 560px;border:1px solid #ececea;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-width:0">
+<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #ececea;flex-wrap:wrap">
+<div style="display:flex;gap:2px;background:#f3f3f1;border-radius:9px;padding:3px;flex-wrap:wrap">
+<sc-for list="{{ mailTabs }}" as="t"><button onClick="{{ t.onClick }}" style="height:28px;padding:0 10px;border:0;border-radius:7px;background:{{ t.bg }};color:{{ t.color }};box-shadow:{{ t.shadow }};font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:6px">{{ t.label }}<span style="font:11px 'JetBrains Mono',monospace;color:#9a9a94">{{ t.count }}</span></button></sc-for>
+</div>
+<div style="flex:1"></div>
+<button onClick="{{ simulateMail }}" style="height:32px;padding:0 12px;border:0;border-radius:8px;background:#1d1d1b;color:#fff;font-size:12.5px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:7px;opacity:{{ simOp }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg>{{ simLabel }}</button>
+</div>
+<sc-if value="{{ mailEmpty }}"><div style="padding:40px;text-align:center;color:#8a8a84;font-size:13px">В этой папке пусто — агент уже всё разобрал</div></sc-if>
+<sc-for list="{{ mailRows }}" as="m" hint-placeholder-count="6"><div onClick="{{ m.toggle }}" style="display:flex;border-top:1px solid #f0f0ed;background:{{ m.rowBg }};cursor:pointer" style-hover="background:#fafaf9">
+<span style="width:3px;flex:none;background:{{ m.mark }}"></span>
+<div style="flex:1;min-width:0;padding:12px 16px;display:flex;flex-direction:column;gap:5px">
+<div style="display:flex;align-items:center;gap:10px;min-width:0"><span style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">{{ m.from }}</span><span style="font-size:12px;color:#9a9a94;white-space:nowrap">{{ m.org }}</span><span style="flex:1"></span>
+<span style="font-size:11.5px;padding:2px 8px;border-radius:6px;background:{{ m.badgeBg }};color:{{ m.badgeFg }};white-space:nowrap">{{ m.badge }}</span><span style="font:12px 'JetBrains Mono',monospace;color:#9a9a94;width:44px;text-align:right">{{ m.time }}</span></div>
+<div style="display:flex;gap:8px;min-width:0;font-size:13.5px"><span style="color:{{ m.subjColor }};font-weight:{{ m.subjWeight }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none;max-width:60%">{{ m.subj }}</span><span style="color:#8a8a84;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">— {{ m.text }}</span></div>
+<sc-if value="{{ m.isPending }}"><div style="height:16px;border-radius:5px;width:260px;max-width:100%;background:linear-gradient(90deg,#eef0f6 0%,#dfe4f2 50%,#eef0f6 100%);background-size:200% 100%;animation:shimmer 1.4s linear infinite;font-size:11.5px;color:oklch(0.45 0.13 250);padding:0 8px;line-height:16px">{{ m.act }}</div></sc-if>
+<sc-if value="{{ m.notPending }}"><div style="display:flex;align-items:center;gap:6px;font-size:12px;color:{{ m.actColor }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l1.9 5.6L19.5 10.5l-5.6 1.9L12 18l-1.9-5.6L4.5 10.5l5.6-1.9Z"></path></svg>{{ m.act }}</div></sc-if>
+<sc-if value="{{ m.isOpen }}">
+<div style="margin-top:6px;display:flex;flex-direction:column;gap:12px;padding:14px;border:1px solid #ececea;border-radius:10px;background:#fff;cursor:default">
+<div style="font-size:13.5px;line-height:1.55;color:#3a3a37">{{ m.text }}</div>
+<div style="display:flex;gap:10px;font-size:12.5px;line-height:1.45;padding:10px 12px;background:#f7f7f5;border-radius:8px"><span style="font-weight:600;flex:none">Почему так:</span><span style="color:#55554f;flex:1">{{ m.reason }}</span><span style="color:#8a8a84;white-space:nowrap">уверенность {{ m.conf }}</span></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<span style="font-size:12px;color:#6b6b66;align-self:center">Демонстрационный почтовый ящик</span>
+<sc-for list="{{ m.acts }}" as="a"><button onClick="{{ a.onClick }}" style="height:30px;padding:0 12px;border:1px solid #e3e3df;border-radius:7px;background:#fff;font-size:12.5px;cursor:pointer" style-hover="background:#f7f7f5">{{ a.label }}</button></sc-for>
+</div>
+</div>
+</sc-if>
+</div>
+</div></sc-for>
+</div>
+<div style="flex:1 1 340px;border:1px solid #ececea;border-radius:14px;display:flex;flex-direction:column;min-width:0">
+<div style="display:flex;align-items:center;gap:12px;padding:16px;border-bottom:1px solid #ececea">
+<span style="width:40px;height:40px;border-radius:10px;background:oklch(0.94 0.045 25);color:oklch(0.45 0.13 25);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;flex:none">Цд</span>
+<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14.5px">Цифровой дворник</div><div style="font-size:12px;color:#8a8a84">Агент интеграции · Керн Lite 8B · реальное время</div></div>
+<button onClick="{{ openMailAgentChat }}" title="Спросить агента в чате" style="height:30px;padding:0 10px;border:1px solid #e3e3df;border-radius:7px;background:#fff;font-size:12.5px;cursor:pointer" style-hover="background:#f7f7f5">В чат</button>
+</div>
+<div style="padding:16px;display:flex;flex-direction:column;gap:18px;font-size:13px">
+<label style="display:flex;flex-direction:column;gap:7px"><span style="font-weight:600">Промпт агента</span><textarea value="{{ mPrompt }}" onChange="{{ onMPrompt }}" rows="9" style="border:1px solid #e3e3df;border-radius:8px;padding:10px;font-size:12.5px;line-height:1.5;resize:vertical;background:#fafaf9"></textarea></label>
+<div style="display:flex;flex-direction:column;gap:7px"><span style="font-weight:600">Срочные письма — уведомить</span><div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ notifyOpts }}" as="p"><button onClick="{{ p.onClick }}" style="height:28px;padding:0 10px;border:1px solid {{ p.border }};border-radius:7px;background:{{ p.bg }};color:{{ p.color }};font-size:12.5px;cursor:pointer">{{ p.label }}</button></sc-for></div></div>
+<div style="display:flex;flex-direction:column;gap:7px"><span style="font-weight:600">Несущественные письма</span><div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ noiseOpts }}" as="p"><button onClick="{{ p.onClick }}" style="height:28px;padding:0 10px;border:1px solid {{ p.border }};border-radius:7px;background:{{ p.bg }};color:{{ p.color }};font-size:12.5px;cursor:pointer">{{ p.label }}</button></sc-for></div></div>
+<div style="display:flex;flex-direction:column;gap:6px"><div style="display:flex"><span style="font-weight:600;flex:1">Порог уверенности</span><b>{{ threshText }}</b></div><input type="range" min="0.6" max="0.99" step="0.01" value="{{ thresh }}" onChange="{{ onThresh }}" style="width:100%;accent-color:#1d1d1b"></input><span style="font-size:12px;color:#8a8a84">Ниже порога письмо остаётся во «Входящих» без действий</span></div>
+<div style="display:flex;flex-direction:column;gap:7px"><span style="font-weight:600">VIP-отправители — никогда не скрывать</span><div style="display:flex;flex-wrap:wrap;gap:6px">
+<sc-for list="{{ vipList }}" as="vp"><span style="height:28px;padding:0 6px 0 10px;border:1px solid #e3e3df;border-radius:7px;display:flex;align-items:center;gap:4px;font-size:12.5px">{{ vp.name }}<button onClick="{{ vp.remove }}" style="width:18px;height:18px;border:0;background:transparent;cursor:pointer;color:#9a9a94;font-size:14px;line-height:1">×</button></span></sc-for>
+<button onClick="{{ addVip }}" style="height:28px;padding:0 10px;border:1px dashed #d6d6d1;border-radius:7px;background:transparent;font-size:12.5px;cursor:pointer;color:#6b6b66">+ Добавить</button>
+</div></div>
+<button onClick="{{ saveMailAgent }}" style="height:36px;border:0;border-radius:8px;background:#1d1d1b;color:#fff;font-size:13px;font-weight:500;cursor:pointer">Сохранить настройки</button>
+</div>
+</div>
+</div>
+</div></div>
+</sc-if>
+</div>
+</sc-if>
+<sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column;position:relative">
+<header style="flex:none;border-bottom:1px solid #ececea;display:flex;align-items:flex-end;gap:24px;padding:12px 24px 0;flex-wrap:wrap">
+<h1 style="margin:0 0 12px;font-size:18px;font-weight:600">Администрирование</h1>
+<div style="display:flex;gap:20px">
+<sc-for list="{{ adminTabs }}" as="t"><button onClick="{{ t.onClick }}" style="height:40px;padding:0 2px;border:0;border-bottom:2px solid {{ t.border }};background:transparent;color:{{ t.color }};font-size:13.5px;font-weight:500;cursor:pointer">{{ t.label }}</button></sc-for>
+</div>
+<div style="flex:1"></div>
+<sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;gap:2px;background:#f3f3f1;border-radius:9px;padding:3px;margin-bottom:8px">
+<sc-for list="{{ ranges }}" as="r"><button onClick="{{ r.onClick }}" style="height:28px;padding:0 12px;border:0;border-radius:7px;background:{{ r.bg }};color:{{ r.color }};box-shadow:{{ r.shadow }};font-size:12.5px;cursor:pointer">{{ r.label }}</button></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ isTokens }}" hint-placeholder-val="{{ false }}">
+<button onClick="{{ createToken }}" style="height:32px;margin-bottom:8px;padding:0 14px;border:0;border-radius:8px;background:#1d1d1b;color:#fff;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Создать токен</button>
+</sc-if>
+</header>
+<div style="flex:1;min-height:0;overflow-y:auto">
+<sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+<div style="max-width:1240px;margin:0 auto;padding:24px;display:flex;flex-direction:column;gap:20px">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+<sc-for list="{{ tiles }}" as="t" hint-placeholder-count="6"><div style="border:1px solid #ececea;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:6px;background:#fff">
+<div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#7a7a74"><span style="flex:1">{{ t.label }}</span><sc-if value="{{ t.live }}">{{ liveDot }}</sc-if><sc-if value="{{ t.hasDelta }}"><span style="font-size:11.5px;color:oklch(0.45 0.12 150);background:oklch(0.95 0.04 150);padding:2px 6px;border-radius:5px">{{ t.delta }}</span></sc-if></div>
+<div style="font-size:26px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums">{{ t.value }}</div>
+<div style="font-size:12px;color:#8a8a84">{{ t.sub }}</div>
+</div></sc-for>
+</div>
+<div style="border:1px solid #ececea;border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap"><h2 style="margin:0;font-size:14.5px;font-weight:600;flex:1">{{ chartTitle }}</h2>
+<span style="display:flex;align-items:center;gap:6px;font-size:12px;color:#6b6b66"><span style="width:14px;height:2px;background:#1d1d1b"></span>Активные пользователи</span>
+<span style="display:flex;align-items:center;gap:6px;font-size:12px;color:#6b6b66"><span style="width:10px;height:10px;border-radius:2px;background:oklch(0.91 0.04 55)"></span>Запросы</span></div>
+<div style="display:flex;gap:10px">
+<div style="display:flex;flex-direction:column;justify-content:space-between;height:220px;font:11px 'JetBrains Mono',monospace;color:#9a9a94;text-align:right;min-width:40px;margin-top:-6px;margin-bottom:-6px">
+<sc-for list="{{ yTicks }}" as="y"><span>{{ y.v }}</span></sc-for>
+</div>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px">
+<div onMouseLeave="{{ chartLeave }}" style="position:relative;height:220px;background-image:linear-gradient(#f0f0ed 1px,transparent 1px);background-size:100% 25%">
+<svg viewBox="0 0 800 220" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible">
+<sc-for list="{{ bars2 }}" as="b"><rect sc-camel-x="{{ b.x }}" sc-camel-y="{{ b.y }}" sc-camel-width="{{ b.w }}" sc-camel-height="{{ b.h }}" rx="2" fill="{{ b.fill }}"></rect></sc-for>
+<path sc-camel-d="{{ areaPath }}" fill="rgba(29,29,27,.05)"></path>
+<path sc-camel-d="{{ linePath }}" fill="none" stroke="#1d1d1b" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"></path>
+</svg>
+<div style="position:absolute;inset:0;display:flex">
+<sc-for list="{{ hoverCells }}" as="hc"><div onMouseEnter="{{ hc.enter }}" style="flex:1"></div></sc-for>
+</div>
+<sc-if value="{{ hasHover }}">
+<div style="position:absolute;left:{{ tip.left }}%;top:{{ tip.top }}%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:#fff;border:2px solid #1d1d1b;pointer-events:none"></div>
+<div style="position:absolute;left:{{ tip.left }}%;top:0;transform:translate(-50%,-110%);background:#1d1d1b;color:#fff;border-radius:8px;padding:8px 10px;font-size:12px;white-space:nowrap;pointer-events:none;display:flex;flex-direction:column;gap:3px">
+<span style="color:#b8b8b2">{{ tip.label }}</span><span>Пользователи: <b>{{ tip.u }}</b></span><span>Запросы: <b>{{ tip.q }}</b></span></div>
+</sc-if>
+</div>
+<div style="display:flex;font:11px 'JetBrains Mono',monospace;color:#9a9a94">
+<sc-for list="{{ xLabels }}" as="xl"><span style="flex:1;text-align:center;white-space:nowrap">{{ xl.t }}</span></sc-for>
+</div>
+</div>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px">
+<div style="border:1px solid #ececea;border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:12px">
+<h2 style="margin:0;font-size:14.5px;font-weight:600">Запросы по агентам</h2>
+<sc-for list="{{ topAgents }}" as="a"><div style="display:flex;flex-direction:column;gap:5px">
+<div style="display:flex;font-size:13px"><span style="flex:1">{{ a.name }}</span><span style="font-variant-numeric:tabular-nums;color:#55554f">{{ a.value }}</span></div>
+<div style="height:6px;background:#f3f3f1;border-radius:4px"><div style="height:100%;width:{{ a.w }}%;background:#1d1d1b;border-radius:4px"></div></div>
+</div></sc-for>
+</div>
+<div style="border:1px solid #ececea;border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+<h2 style="margin:0;font-size:14.5px;font-weight:600">Распределение по моделям</h2>
+<div style="display:flex;height:10px;border-radius:5px;overflow:hidden;gap:2px">
+<sc-for list="{{ modelShares }}" as="m"><div style="width:{{ m.w }}%;background:{{ m.color }}"></div></sc-for>
+</div>
+<sc-for list="{{ modelShares }}" as="m"><div style="display:flex;align-items:center;gap:10px;font-size:13px">
+<span style="width:10px;height:10px;border-radius:3px;background:{{ m.color }};flex:none"></span><span style="flex:1">{{ m.name }}</span><span style="color:#8a8a84;font-size:12px">{{ m.tokens }}</span><span style="width:40px;text-align:right;font-weight:500;font-variant-numeric:tabular-nums">{{ m.pct }}</span>
+</div></sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ isTokens }}" hint-placeholder-val="{{ false }}">
+<div style="max-width:1240px;margin:0 auto;padding:24px;display:flex;flex-direction:column;gap:20px">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+<sc-for list="{{ tokSummary }}" as="t"><div style="border:1px solid #ececea;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:4px"><span style="font-size:12.5px;color:#7a7a74">{{ t.label }}</span><span style="font-size:20px;font-weight:600;font-variant-numeric:tabular-nums">{{ t.value }}</span></div></sc-for>
+</div>
+<div style="border:1px solid #ececea;border-radius:12px;overflow-x:auto">
+<div style="min-width:900px;font-size:13px">
+<div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.4fr) 70px 90px minmax(0,1.6fr) 90px 80px 120px;gap:14px;padding:10px 16px;background:#f9f9f8;color:#6b6b66;font-weight:500;font-size:12.5px"><span>Интеграция</span><span>Ключ</span><span>Агенты</span><span>Запросы 24ч</span><span>Токены LLM / день</span><span>Параллельно</span><span>Нагрузка</span><span>Статус</span></div>
+<sc-for list="{{ tokenRows }}" as="r"><div onClick="{{ r.open }}" style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.4fr) 70px 90px minmax(0,1.6fr) 90px 80px 120px;gap:14px;padding:12px 16px;border-top:1px solid #f0f0ed;align-items:center;cursor:pointer;background:{{ r.rowBg }}" style-hover="background:#f7f7f5">
+<span style="display:flex;flex-direction:column;min-width:0"><span style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.name }}</span><span style="font-size:12px;color:#8a8a84;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.sys }}</span></span>
+<span style="font:12px 'JetBrains Mono',monospace;color:#55554f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.key }}</span>
+<span>{{ r.agentsCount }}</span><span style="font-variant-numeric:tabular-nums">{{ r.req }}</span>
+<span style="display:flex;flex-direction:column;gap:5px"><span style="font-size:12px;color:#55554f">{{ r.usedText }}</span><span style="height:5px;background:#f0f0ed;border-radius:3px"><span style="display:block;height:100%;width:{{ r.usedW }}%;background:{{ r.barColor }};border-radius:3px"></span></span></span>
+<span style="font-variant-numeric:tabular-nums">{{ r.parText }}</span><span style="font-variant-numeric:tabular-nums">{{ r.load }}</span>
+<span><span style="font-size:12px;padding:3px 8px;border-radius:6px;background:{{ r.statusBg }};color:{{ r.statusFg }};white-space:nowrap">{{ r.statusLabel }}</span></span>
+</div></sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+<sc-if value="{{ drawerOpen }}">
+<div onClick="{{ closeDrawer }}" style="position:absolute;inset:0;background:rgba(20,20,18,.18)"></div>
+<aside style="position:absolute;top:0;right:0;bottom:0;width:440px;max-width:100%;background:#fff;border-left:1px solid #ececea;box-shadow:-12px 0 32px rgba(0,0,0,.08);display:flex;flex-direction:column">
+<div style="flex:none;display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #ececea">
+<input value="{{ tk.name }}" onChange="{{ tk.onName }}" style="flex:1;min-width:0;border:0;font-size:16px;font-weight:600;background:transparent"></input>
+<span style="font-size:12px;padding:3px 8px;border-radius:6px;background:{{ tk.statusBg }};color:{{ tk.statusFg }}">{{ tk.statusLabel }}</span>
+<button onClick="{{ closeDrawer }}" style="width:30px;height:30px;border:0;background:transparent;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:#f3f3f1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:22px;font-size:13px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="color:#8a8a84">{{ tk.sys }} · создан {{ tk.created }} · последний вызов {{ tk.last }}</div>
+<div style="display:flex;align-items:center;gap:8px;border:1px solid #ececea;border-radius:8px;padding:8px 10px;background:#f9f9f8"><span style="flex:1;font:12.5px 'JetBrains Mono',monospace">{{ tk.key }}</span><button onClick="{{ tk.copy }}" style="border:0;background:transparent;font-size:12px;color:#55554f;cursor:pointer">Копировать</button></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-weight:600;flex:1">Активность, 24 ч</span><span style="color:#8a8a84;font-size:12px">p95 {{ tk.p95 }} · ошибки {{ tk.err }}</span></div>
+<svg viewBox="0 0 400 80" preserveAspectRatio="none" style="width:100%;height:80px"><path sc-camel-d="{{ tk.area }}" fill="rgba(29,29,27,.06)"></path><path sc-camel-d="{{ tk.spark }}" fill="none" stroke="#1d1d1b" stroke-width="1.6" vector-effect="non-scaling-stroke"></path></svg>
+<div style="display:flex;flex-direction:column;gap:5px"><div style="display:flex"><span style="flex:1;color:#55554f">Нагрузка на кластер</span><b>{{ tk.load }}</b></div><div style="height:6px;background:#f0f0ed;border-radius:4px"><div style="height:100%;width:{{ tk.loadW }}%;background:#1d1d1b;border-radius:4px"></div></div><span style="font-size:12px;color:#8a8a84">{{ tk.loadNote }}</span></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<span style="font-weight:600">Агенты интеграции</span>
+<sc-if value="{{ tk.hasAgents }}"><div style="border:1px solid #ececea;border-radius:10px">
+<sc-for list="{{ tk.agents }}" as="a"><div style="display:flex;padding:9px 12px;border-top:1px solid #f3f3f1"><span style="flex:1">{{ a.name }}</span><span style="color:#8a8a84">{{ a.req }}</span></div></sc-for>
+</div></sc-if>
+<sc-if value="{{ tk.noAgents }}"><div style="color:#8a8a84">Агенты ещё не созданы через этот токен</div></sc-if>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px;border-top:1px solid #ececea;padding-top:18px">
+<span style="font-weight:600">Лимиты</span>
+<div style="display:flex;flex-direction:column;gap:6px"><div style="display:flex"><span style="flex:1;color:#55554f">Токенов LLM в день</span><b>{{ tk.limitText }}</b></div><input type="range" min="1" max="100" step="0.5" value="{{ tk.limit }}" onChange="{{ tk.onLimit }}" style="width:100%;accent-color:#1d1d1b"></input><span style="font-size:12px;color:#8a8a84">{{ tk.usedNote }}</span></div>
+<div style="display:flex;align-items:center;gap:12px"><div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="color:#55554f">Параллельных запросов</span><span style="font-size:12px;color:#8a8a84">{{ tk.parNote }}</span></div>
+<div style="display:flex;align-items:center;border:1px solid #e3e3df;border-radius:8px"><button onClick="{{ tk.parDec }}" style="width:32px;height:32px;border:0;background:transparent;cursor:pointer;font-size:16px">−</button><span style="min-width:32px;text-align:center;font-weight:600">{{ tk.parMax }}</span><button onClick="{{ tk.parInc }}" style="width:32px;height:32px;border:0;background:transparent;cursor:pointer;font-size:16px">+</button></div></div>
+<div style="display:flex;flex-direction:column;gap:6px"><div style="display:flex"><span style="flex:1;color:#55554f">Запросов в минуту</span><b>{{ tk.rpmText }}</b></div><input type="range" min="10" max="2000" step="10" value="{{ tk.rpm }}" onChange="{{ tk.onRpm }}" style="width:100%;accent-color:#1d1d1b"></input></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="color:#55554f">Доступные модели</span><div style="display:flex;flex-wrap:wrap;gap:6px">
+<sc-for list="{{ tk.models }}" as="m"><button onClick="{{ m.onClick }}" style="height:28px;padding:0 10px;border:1px solid {{ m.border }};border-radius:7px;background:{{ m.bg }};color:{{ m.color }};font-size:12.5px;cursor:pointer">{{ m.label }}</button></sc-for>
+</div></div>
+<div style="display:flex;align-items:center;gap:12px"><span style="flex:1;color:#55554f">Разрешить создание агентов</span><button onClick="{{ tk.toggleAllow }}" style="width:38px;height:22px;border:0;border-radius:11px;background:{{ tk.allowBg }};position:relative;cursor:pointer;flex:none"><span style="position:absolute;top:2px;left:{{ tk.knob }}px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s"></span></button></div>
+</div>
+</div>
+<div style="flex:none;display:flex;gap:8px;padding:14px 18px;border-top:1px solid #ececea">
+<button onClick="{{ tk.revoke }}" style="height:34px;padding:0 12px;border:1px solid #f0d6d3;border-radius:8px;background:#fff;color:oklch(0.55 0.18 25);font-size:13px;cursor:pointer">Отозвать</button>
+<button onClick="{{ tk.togglePause }}" style="height:34px;padding:0 12px;border:1px solid #e3e3df;border-radius:8px;background:#fff;font-size:13px;cursor:pointer">{{ tk.pauseLabel }}</button>
+<div style="flex:1"></div>
+<button onClick="{{ tk.save }}" style="height:34px;padding:0 16px;border:0;border-radius:8px;background:#1d1d1b;color:#fff;font-size:13px;font-weight:500;cursor:pointer">Сохранить</button>
+</div>
+</aside>
+</sc-if>
+</div>
+</sc-if>
+</main>
+<sc-if value="{{ modalOpen }}">
+<div onClick="{{ closeModal }}" style="position:fixed;inset:0;background:rgba(20,20,18,.28);z-index:50"></div>
+<div style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:520px;max-width:calc(100vw - 32px);max-height:calc(100vh - 48px);overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.18);z-index:51;display:flex;flex-direction:column;font-size:13px">
+<div style="display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid #ececea"><h2 style="margin:0;font-size:16px;font-weight:600;flex:1">{{ modalTitle }}</h2><button onClick="{{ closeModal }}" style="width:30px;height:30px;border:0;background:transparent;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:#f3f3f1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
+<div style="padding:18px 20px;display:flex;flex-direction:column;gap:16px">
+<label style="display:flex;flex-direction:column;gap:6px"><span style="color:#55554f">Название</span><input value="{{ fName }}" onChange="{{ onFName }}" placeholder="Например, Сейсморазведка 3D" style="height:36px;border:1px solid #e3e3df;border-radius:8px;padding:0 10px"></input></label>
+<sc-if value="{{ isCollModal }}"><div style="display:flex;flex-direction:column;gap:6px"><span style="color:#55554f">Домен</span><div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ fDomains }}" as="p"><button onClick="{{ p.onClick }}" style="height:28px;padding:0 10px;border:1px solid {{ p.border }};border-radius:7px;background:{{ p.bg }};color:{{ p.color }};font-size:12.5px;cursor:pointer">{{ p.label }}</button></sc-for></div></div></sc-if>
+<label style="display:flex;flex-direction:column;gap:6px"><span style="color:#55554f">Описание</span><textarea value="{{ fDesc }}" onChange="{{ onFDesc }}" rows="3" placeholder="Какие документы и данные хранятся" style="border:1px solid #e3e3df;border-radius:8px;padding:8px 10px;resize:vertical"></textarea></label>
+<label style="display:flex;flex-direction:column;gap:6px"><span style="color:#55554f">Владелец</span><input value="{{ fOwner }}" onChange="{{ onFOwner }}" style="height:36px;border:1px solid #e3e3df;border-radius:8px;padding:0 10px"></input></label>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="color:#55554f">Уровень доступа</span><div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ fAccess }}" as="p"><button onClick="{{ p.onClick }}" style="height:28px;padding:0 10px;border:1px solid {{ p.border }};border-radius:7px;background:{{ p.bg }};color:{{ p.color }};font-size:12.5px;cursor:pointer">{{ p.label }}</button></sc-for></div></div>
+<sc-if value="{{ isCollModal }}">
+<div style="display:flex;flex-direction:column;gap:6px"><span style="color:#55554f">Источник данных</span><div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ fSource }}" as="p"><button onClick="{{ p.onClick }}" style="height:28px;padding:0 10px;border:1px solid {{ p.border }};border-radius:7px;background:{{ p.bg }};color:{{ p.color }};font-size:12.5px;cursor:pointer">{{ p.label }}</button></sc-for></div></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="color:#55554f">Обновление индекса</span><div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ fRefresh }}" as="p"><button onClick="{{ p.onClick }}" style="height:28px;padding:0 10px;border:1px solid {{ p.border }};border-radius:7px;background:{{ p.bg }};color:{{ p.color }};font-size:12.5px;cursor:pointer">{{ p.label }}</button></sc-for></div></div>
+</sc-if>
+</div>
+<div style="display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid #ececea">
+<button onClick="{{ closeModal }}" style="height:34px;padding:0 14px;border:1px solid #e3e3df;border-radius:8px;background:#fff;font-size:13px;cursor:pointer">Отмена</button>
+<button onClick="{{ submitModal }}" style="height:34px;padding:0 16px;border:0;border-radius:8px;background:#1d1d1b;color:#fff;font-size:13px;font-weight:500;cursor:pointer">Создать</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ deckOpen }}">
+<div style="position:fixed;inset:0;z-index:55;background:rgba(20,20,18,.72);display:flex;flex-direction:column;padding:16px;gap:12px">
+<div style="display:flex;align-items:center;gap:10px;color:#fff">
+<span style="width:30px;height:30px;border-radius:8px;background:oklch(0.94 0.045 200);color:oklch(0.45 0.13 200);display:flex;align-items:center;justify-content:center;font:600 10px 'JetBrains Mono',monospace">HTML</span>
+<span style="font-size:14px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ deckName }}</span>
+<button onClick="{{ deckTab }}" style="height:34px;padding:0 14px;border:1px solid rgba(255,255,255,.3);border-radius:8px;background:transparent;color:#fff;font-size:13px;cursor:pointer">Открыть в новой вкладке</button>
+<button onClick="{{ deckDownload }}" style="height:34px;padding:0 14px;border:0;border-radius:8px;background:#fff;color:#1d1d1b;font-size:13px;font-weight:500;cursor:pointer">Скачать HTML</button>
+<button onClick="{{ closeDeck }}" title="Закрыть" style="width:34px;height:34px;border:0;border-radius:8px;background:rgba(255,255,255,.12);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<iframe sc-camel-src="{{ deckSrc }}" title="Интерактивная презентация" style="flex:1;width:100%;border:0;border-radius:12px;background:#1d1d1b"></iframe>
+</div>
+</sc-if>
+<sc-if value="{{ notifShow }}">
+<div style="position:fixed;top:16px;right:16px;width:360px;max-width:calc(100vw - 32px);background:#fff;border:1px solid #ececea;border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.16);z-index:58;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:oklch(0.5 0.17 25)"><span style="width:8px;height:8px;border-radius:50%;background:oklch(0.6 0.18 25);animation:pulse 1.4s ease-in-out infinite"></span>Срочное письмо<span style="flex:1"></span><button onClick="{{ closeNotif }}" style="border:0;background:transparent;cursor:pointer;color:#9a9a94;font-size:16px;line-height:1">×</button></div>
+<div style="font-size:12.5px;color:#6b6b66">{{ notif.from }}</div>
+<div style="font-size:14px;font-weight:600;line-height:1.35">{{ notif.subj }}</div>
+<div style="font-size:12.5px;color:#55554f;line-height:1.45">{{ notif.reason }}</div>
+<div style="display:flex;gap:8px;margin-top:4px"><button onClick="{{ openNotif }}" style="height:30px;padding:0 12px;border:0;border-radius:7px;background:#1d1d1b;color:#fff;font-size:12.5px;cursor:pointer">Открыть</button><a href="https://mail.corp.local/owa" target="_blank" rel="noopener" style="height:30px;padding:0 12px;border:1px solid #e3e3df;border-radius:7px;font-size:12.5px;text-decoration:none;color:#1d1d1b;display:flex;align-items:center">В почте ↗</a></div>
+</div>
+</sc-if>
+<sc-if value="{{ toastShow }}">
+<div style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#1d1d1b;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:60;max-width:calc(100vw - 32px)">{{ toastText }}</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;startView&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;chat&quot;,&quot;agents&quot;,&quot;builder&quot;,&quot;collections&quot;,&quot;integrations&quot;,&quot;admin&quot;],&quot;default&quot;:&quot;chat&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Демо&quot;},&quot;stepsExpanded&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Демо&quot;}}">
+const tileC=h=>({bg:`oklch(0.94 0.045 ${h})`,fg:`oklch(0.45 0.13 ${h})`});
+const fmt=n=>Math.round(n).toLocaleString('ru-RU');
+const EXT={xlsx:[150,'Таблица'],xls:[150,'Таблица'],csv:[150,'Таблица'],pdf:[25,'PDF'],docx:[250,'Документ'],doc:[250,'Документ'],pptx:[45,'Презентация'],m4a:[300,'Аудио'],mp3:[300,'Аудио'],mp4:[0,'Видео'],zip:[90,'Архив'],md:[220,'Markdown'],txt:[220,'Текст'],col:[200,'Коллекция']};
+const fileView=f=>{const ext=f.ext||(f.name.split('.').pop()||'').toLowerCase();const e=EXT[ext]||[220,'Файл'];const t=tileC(e[0]);return {name:f.name,ext:ext==='col'?'КОЛ':ext.toUpperCase().slice(0,4),meta:(f.kind||e[1])+(f.size?' · '+f.size:''),bg:t.bg,fg:t.fg};};
+EXT.html=EXT.html||[200,'HTML'];
+const pill=(on)=>on?{bg:'#1d1d1b',color:'#fff',border:'#1d1d1b'}:{bg:'#fff',color:'#3a3a37',border:'#e3e3df'};
+const CATN={trig:'Триггер',ai:'ИИ',data:'Данные',logic:'Логика',out:'Результат',sub:'Подключение'};
+const CATH={trig:150,ai:295,data:235,logic:70,out:25,sub:295};
+const dims=n=>n.cat==='sub'?{w:64,h:64}:n.big?{w:220,h:80}:{w:200,h:64};
+const pt=(n,p)=>{const {w,h}=dims(n);if(p==='in')return[n.x,n.y+h/2];if(p==='top')return[n.x+w/2,n.y];if(p==='yes')return[n.x+w,n.y+h*0.3];if(p==='no')return[n.x+w,n.y+h*0.7];if(p&&p[0]==='b')return[n.x+w*[0.18,0.5,0.82][+p[1]],n.y+h];return[n.x+w,n.y+h/2];};
+const TRANSCRIPT='Подготовь сводку по добыче нефти за октябрь по кусту 14 и сравни с планом ГТМ';
+const GREEN='oklch(0.6 0.13 150)',ACC='#c2571c';
+
+class Component extends DCLogic {
+  state={ready:false};
+  scrollRef=React.createRef();
+  componentDidMount(){
+    const go=()=>{ if(window.KERN) this.init(); else this.initT=setTimeout(go,40); }; go();
+    this.sessT=setInterval(()=>this.state.ready&&this.setState(s=>({sessions:Math.max(286,Math.min(341,s.sessions+Math.round((Math.random()-0.5)*9)))})),2600);
+  }
+  componentWillUnmount(){[this.sessT,this.recT,this.runT,this.stepT].forEach(clearInterval);[this.initT,this.pendT,this.toastT].forEach(clearTimeout);}
+  init(){
+    const K=window.KERN;
+    this.setState({ready:true,view:this.props.startView||'chat',sidebar:true,
+      convs:JSON.parse(JSON.stringify(K.CONVS)),history:K.HISTORY.slice(),convId:'c1',draft:'',menu:null,agentId:'protocol',modelId:'pro',attach:[],fileIdx:0,
+      rec:false,recTick:0,bars:Array(40).fill(4),pending:false,pendStep:0,pendSteps:[],pendAgent:null,openSteps:{},
+      agentSearch:'',agentOpen:'protocol',custom:[],
+      nodes:K.NODES.map(n=>({...n,fields:K.FIELDS(n.kind)})),edges:K.EDGES.slice(),sel:'n4',zoom:0.8,drag:null,runDone:[],runCur:null,running:false,agentName:'Аналитик ТЭО',nextId:11,
+      domains:JSON.parse(JSON.stringify(K.DOMAINS)),open:{econ:true,dev:true},selColl:'teo',favs:{econ:true,teo:true,gtm:true},collTab:'all',collSearch:'',
+      modal:null,form:{},adminTab:'overview',range:'d7',hover:null,sessions:312,tokens:JSON.parse(JSON.stringify(K.TOKENS)),tokSel:null,toast:null,
+      intSel:'mail',mails:JSON.parse(JSON.stringify((window.KERN_MAIL||{}).MAILS||[])),mailTab:'urgent',mailOpen:'m1',qIdx:0,analyzing:null,mPrompt:(window.KERN_MAIL||{}).PROMPT||'',
+      noiseAct:'archive',notifyCh:{push:true,chat:true,sms:false},thresh:0.85,mailActive:true,notif:null,vip:['Генеральный директор','Заместители ГД','Диспетчерская служба','Служба ОТиПБ']});
+  }
+  componentDidUpdate(pp,ps){
+    if(pp.startView!==this.props.startView&&this.props.startView)this.setState({view:this.props.startView});
+    if(!this.state||!ps||!this.state.ready||!ps.ready||!this.scrollRef)return;
+    const s=this.state,c=s.convs[s.convId],pc=ps.convs[ps.convId],el=this.scrollRef.current;
+    if(!el)return;
+    if(s.convId!==ps.convId||s.view!==ps.view)el.scrollTop=0;
+    else if((c&&pc&&c.msgs.length!==pc.msgs.length)||s.pending!==ps.pending)el.scrollTop=el.scrollHeight;
+  }
+  toast(t){this.setState({toast:t});clearTimeout(this.toastT);this.toastT=setTimeout(()=>this.setState({toast:null}),2800);}
+  allAgents(){return [...window.KERN.AGENTS,...this.state.custom];}
+  agent(id){return this.allAgents().find(a=>a.id===id);}
+  simulateMail=()=>{
+    const KM=window.KERN_MAIL,s=this.state;if(s.analyzing||!s.mailActive)return;
+    const q=KM.QUEUE[s.qIdx%KM.QUEUE.length],id=q.id+'_'+Date.now(),time=new Date().toTimeString().slice(0,5);
+    this.setState({mails:[{...q,id,time,cat:'pending',final:q.cat,fresh:true},...s.mails],analyzing:id,mailTab:'all',qIdx:s.qIdx+1,mailOpen:null});
+    clearTimeout(this.anT);
+    this.anT=setTimeout(()=>{
+      this.setState(st=>({analyzing:null,mails:st.mails.map(m=>m.id===id?{...m,cat:m.final}:m),notif:q.cat==='urgent'?{id,from:q.from,subj:q.subj,reason:q.reason}:st.notif}));
+      if(q.cat==='noise')this.toast('«'+q.text+'» — перемещено в '+(this.state.noiseAct==='trash'?'«Удалённые»':'архив'));
+      else if(q.cat==='normal')this.toast('Обычное письмо — оставлено во «Входящих»');
+      else{clearTimeout(this.nT);this.nT=setTimeout(()=>this.setState({notif:null}),8000);}
+    },1800);
+  };
+  setMailCat(id,cat,msg){this.setState(s=>({mails:s.mails.map(m=>m.id===id?{...m,cat,trash:false}:m),mailOpen:null}));this.toast(msg);}
+  go(view,extra){this.setState({view,menu:null,...(extra||{})});}
+  startAgentChat(id,draft){this.go('chat',{convId:null,agentId:id,draft:draft||'',attach:[]});}
+  stepsFor(aid){return ({protocol:['Читаю приложенные материалы','Выделяю решения и поручения','Сопоставляю ответственных','Формирую протокол'],table:['Загружаю таблицы','Проверяю структуру данных','Выполняю расчёт','Готовлю выводы'],pres:['Разбираю слайды','Извлекаю показатели','Сверяю с коллекциями'],arch:['Распаковываю архив','Классифицирую документы','Формирую реестр'],gen:['Строю структуру','Подбираю данные из коллекций','Собираю слайды']})[aid]||['Ищу в коллекциях','Формулирую ответ'];}
+  reply(aid,files){
+    const {H2,P,L}=window.KERN;
+    const fl=files.length?`Принял ${files.length===1?'файл':'файлы'}: ${files.map(f=>f.name).join(', ')}. `:'';
+    const R={
+      protocol:[H2('Протокол будет сформирован по структуре'),P(fl+'Заполню разделы: итоговая резолюция, поручения, ответственные, сроки, риски и открытые вопросы. Если стенограмма ещё не приложена — прикрепите .docx, .txt или аудиозапись совещания.'),L(['Ответственные сверяются со справочником сотрудников','Относительные сроки приводятся к датам','Реестр поручений выгружается в .xlsx'])],
+      table:[H2('Предварительный результат'),P(fl+'Использую данные коллекции «Технико-экономические модели». Базовый сценарий: NPV₁₀ — 31,8 млрд руб., IRR — 19,6%, срок окупаемости — 5,9 года.'),L(['Наибольшая чувствительность — к цене нефти и CAPEX','Порог безубыточности по цене — 41 $/барр.','Могу выгрузить расчёт в .xlsx с формулами'])],
+      pres:[H2('Разбор презентации'),P(fl+'Выделю тезисы по каждому слайду, выгружу показатели в таблицу со ссылками на слайды и отмечу расхождения с данными коллекций.'),L(['Резюме на 5 пунктов','Таблица показателей','Вопросы к докладчику'])],
+      arch:[H2('Обработка архива'),P(fl+'Распакую архив, распознаю сканы, классифицирую документы по типам и сформирую реестр с кратким содержанием.'),L(['Реестр в .xlsx','Группы дубликатов','Список нечитаемых файлов'])],
+      gen:[H2('Структура презентации'),P(fl+'Предлагаю план на 6 слайдов в корпоративном шаблоне. После согласования соберу .pptx с заметками докладчика.'),L(['Цели и контекст проекта','Ресурсная база и профиль добычи','CAPEX и OPEX','Экономика: NPV, IRR','Риски','Решения для комитета'])],
+      none:[P(fl+'Найдено 12 релевантных фрагментов в коллекциях «Добыча и эксплуатация» и «Экономика upstream». Добыча нефти за октябрь — 1 214 тыс. т (98,6% плана); отклонение связано с переносом ГРП на кусте 14.'),L(['Уточните период и объект — месторождение, куст или скважину','Могу подготовить сводку в .xlsx'])]};
+    const m=window.KERN.MODELS.find(x=>x.id===this.state.modelId);
+    return {role:'bot',agent:aid,model:m.name,time:'Рассуждал '+(4+Math.round(Math.random()*9))+' секунд',steps:this.stepsFor(aid),blocks:R[aid]||R.none};
+  }
+  send=()=>{
+    const s=this.state,text=s.draft.trim();
+    if((!text&&!s.attach.length)||s.pending||s.rec)return;
+    let convId=s.convId,history=s.history;const convs={...s.convs};
+    if(!convId){convId='n'+Date.now();convs[convId]={title:(text||s.attach[0].name).slice(0,48),agent:s.agentId,msgs:[]};history=[{id:convId,g:'Сегодня'},...history];}
+    convs[convId]={...convs[convId],msgs:[...convs[convId].msgs,{role:'user',text,files:s.attach}]};
+    const aid=s.agentId,files=s.attach,steps=this.stepsFor(aid);
+    this.setState({convs,convId,history,draft:'',attach:[],pending:true,pendStep:0,pendSteps:steps,pendAgent:aid,menu:null});
+    clearInterval(this.stepT);this.stepT=setInterval(()=>this.setState(st=>({pendStep:Math.min(st.pendStep+1,steps.length-1)})),750);
+    this.pendT=setTimeout(()=>{clearInterval(this.stepT);this.setState(st=>{const c={...st.convs[convId]};c.msgs=[...c.msgs,this.reply(aid,files)];return {convs:{...st.convs,[convId]:c},pending:false};});},steps.length*750+400);
+  };
+  toggleRec=()=>{
+    if(this.state.rec){clearInterval(this.recT);this.setState(s=>({rec:false,bars:Array(40).fill(4),draft:(s.draft?s.draft+' ':'')+TRANSCRIPT}));return;}
+    this.setState({rec:true,recTick:0,menu:null});
+    this.recT=setInterval(()=>this.setState(s=>({recTick:s.recTick+1,bars:[...s.bars.slice(1),4+Math.round(Math.random()*Math.random()*26+Math.random()*4)]})),90);
+  };
+  // builder
+  setField(id,fi,v){this.setState(s=>({nodes:s.nodes.map(n=>{if(n.id!==id)return n;const fields=n.fields.slice();const f={...fields[fi]};
+    if(f.k==='many'){f.value=f.value.includes(v)?f.value.filter(x=>x!==v):[...f.value,v];}else if(f.k==='range'){f.value=+v;}else f.value=v;
+    fields[fi]=f;const patch={fields};if(n.kind==='agent'&&fi===0)patch.sub=v;if(n.kind==='model'&&fi===0)patch.title=v;return {...n,...patch};})}));}
+  addNode(kind,title,cat){
+    const s=this.state,K=window.KERN,id='n'+s.nextId,sel=s.nodes.find(n=>n.id===s.sel);
+    let x=320,y=480;
+    if(sel&&sel.cat!=='sub'){const d=dims(sel);x=Math.min(sel.x+d.w+70,1340);y=Math.min(sel.y+(sel.cat==='out'?110:0),520);if(s.nodes.some(n=>Math.abs(n.x-x)<60&&Math.abs(n.y-y)<50))y=Math.min(y+100,540);}
+    const node={id,kind,cat,title,sub:CATN[cat],x,y,fields:K.FIELDS(kind)};
+    const link=sel&&sel.cat!=='sub'&&sel.cat!=='out'&&cat!=='trig';
+    this.setState({nodes:[...s.nodes,node],edges:link?[...s.edges,{f:sel.id,t:id,fp:sel.kind==='if'?'no':undefined}]:s.edges,sel:id,nextId:s.nextId+1});
+  }
+  delNode=()=>{const id=this.state.sel;this.setState(s=>({nodes:s.nodes.filter(n=>n.id!==id),edges:s.edges.filter(e=>e.f!==id&&e.t!==id),sel:null}));};
+  runTest=()=>{
+    if(this.state.running)return;
+    const order=this.state.nodes.slice().sort((a,b)=>(a.cat==='sub'?a.x-60:a.x)-(b.cat==='sub'?b.x-60:b.x)).map(n=>n.id);
+    this.setState({running:true,runDone:[],runCur:order[0]});let i=0;clearInterval(this.runT);
+    this.runT=setInterval(()=>{if(i>=order.length){clearInterval(this.runT);this.setState({running:false,runCur:null});this.toast(`Тестовый запуск успешен · ${order.length} узлов · 3,8 с`);return;}
+      const id=order[i++];this.setState(s=>({runDone:[...s.runDone,id],runCur:order[i]||null}));},330);
+  };
+  publish=()=>{
+    const s=this.state,name=s.agentName.trim()||'Новый агент',ex=s.custom.find(c=>c.name===name);
+    if(!ex){const a={id:'u'+Date.now(),name,abbr:name.slice(0,2),hue:20,author:'Ирина Соколова',ver:'1.0',updated:'23.10.2026',runs:'0',
+      short:'Пользовательский агент из конструктора: парсинг документов, поиск по коллекциям «Экономика upstream», расчёт и отчёт.',
+      desc:'Собран в визуальном конструкторе. Принимает сообщения и файлы, извлекает данные, ищет релевантные фрагменты в коллекциях технико-экономических моделей и CAPEX, рассчитывает показатели и возвращает ответ в чат или Excel-отчёт.',
+      model:'Керн Ultra 70B',colls:['Технико-экономические модели','CAPEX и инвестпроекты'],formats:['.xlsx','.pdf','.docx'],
+      inputs:[['Запрос и файлы','.xlsx, .pdf, .docx',true]],out:[['Ответ в чат','Markdown + таблицы'],['Excel-отчёт','шаблон «Сравнение сценариев»']],examples:['Сравни NPV проектов из инвестпрограммы 2027','Какой CAPEX заложен по ЛУ-27?']};
+      this.setState({custom:[...s.custom,a]});}
+    this.toast(`Агент «${name}» опубликован в каталоге`);
+  };
+  // collections
+  toggleFav(id,e){if(e)e.stopPropagation();this.setState(s=>({favs:{...s.favs,[id]:!s.favs[id]}}));}
+  openModal(kind){this.setState({modal:kind,form:{name:'',desc:'',domain:'econ',access:'Внутренний',source:'Загрузка файлов',refresh:'При изменении',owner:'Ирина Соколова'}});}
+  setForm(k,v){this.setState(s=>({form:{...s.form,[k]:v}}));}
+  submitModal=()=>{
+    const s=this.state,f=s.form,name=f.name.trim()||(s.modal==='domain'?'Новый домен':'Новая коллекция');
+    if(s.modal==='domain'){const id='d'+Date.now();this.setState({domains:[...s.domains,{id,name,colls:[]}],open:{...s.open,[id]:true},modal:null});this.toast(`Домен «${name}» создан`);}
+    else{const id='c'+Date.now();this.setState({domains:s.domains.map(d=>d.id===f.domain?{...d,colls:[...d.colls,{id,name,docs:0,desc:f.desc}]}:d),open:{...s.open,[f.domain]:true},selColl:id,modal:null});this.toast(`Коллекция «${name}» создана`);}
+  };
+  // admin
+  series(range){
+    const n={h24:24,d7:7,d30:30,d90:13}[range],maxU={h24:640,d7:1580,d30:1650,d90:2240}[range],qMul={h24:11,d7:12.5,d30:12,d90:58}[range];
+    const today=new Date(2026,9,23),wd=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'],dd=d=>String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0');
+    const pts=[];
+    for(let i=0;i<n;i++){let f,label,short;
+      if(range==='h24'){f=i<6?0.08+0.02*i:i<=19?0.55+0.45*Math.sin((i-6)/13*Math.PI):0.45-0.09*(i-19);label=String(i).padStart(2,'0')+':00';short=label;}
+      else if(range==='d90'){const d=new Date(today);d.setDate(d.getDate()-7*(n-1-i));f=0.7+0.12*Math.sin(i*0.9)+0.02*i;label='Неделя до '+dd(d);short=dd(d);}
+      else{const d=new Date(today);d.setDate(d.getDate()-(n-1-i));const w=d.getDay();f=(w===0||w===6)?0.3:0.84+0.1*Math.sin(i*1.3);label=wd[w]+', '+dd(d);short=range==='d7'?wd[w]:dd(d);}
+      f=Math.max(0.05,f+0.04*Math.sin(i*7.31+n));const u=Math.round(maxU*f),q=Math.round(u*qMul*(0.9+0.15*Math.sin(i*2.1)));pts.push({u,q,label,short});}
+    return pts;
+  }
+  setTok(id,patch){this.setState(s=>({tokens:s.tokens.map(t=>t.id===id?{...t,...patch}:t)}));}
+  createToken=()=>{const id='t'+Date.now(),hex=Math.random().toString(16).slice(2,6);
+    this.setState(s=>({adminTab:'tokens',tokSel:id,tokens:[...s.tokens,{id,name:'Новая интеграция',sys:'Владелец не назначен',key:'krn_live_••••'+hex,created:'23.10.2026',last:'ещё не использовался',agents:[],req:0,used:0,limit:1,par:0,parMax:4,rpm:60,load:0,p95:'—',err:'—',status:'active',models:['Керн Lite 8B'],allow:false,seed:1.1}]}));
+    this.toast('Токен создан — скопируйте ключ, он показывается один раз');};
+
+  renderVals(){
+    const s=this.state;
+    if(!s.ready)return {isChat:true,sidebarOpen:true};
+    const K=window.KERN,v=s.view,agents=this.allAgents();
+    const nav=k=>v===k?'#ececea':'transparent';
+    const out={sidebarOpen:s.sidebar,sidebarClosed:!s.sidebar,toggleSidebar:()=>this.setState({sidebar:!s.sidebar}),
+      isChat:v==='chat',isAgents:v==='agents',isAgent:v==='agent',isBuilder:v==='builder',isColl:v==='collections',isAdmin:v==='admin',
+      navBg:{chat:v==='chat'&&!s.convId?'#ececea':'transparent',agents:(v==='agents'||v==='agent'||v==='builder')?'#ececea':'transparent',coll:nav('collections'),admin:nav('admin')},
+      newChat:()=>this.go('chat',{convId:null,draft:'',attach:[]}),goAgents:()=>this.go('agents'),goColl:()=>this.go('collections'),goAdmin:()=>this.go('admin'),goBuilder:()=>this.go('builder'),
+      toastShow:!!s.toast,toastText:s.toast||''};
+    // history
+    const groups=['Сегодня','Вчера','Предыдущие 7 дней'];
+    out.histGroups=groups.map(g=>({label:g,items:s.history.filter(h=>h.g===g).map(h=>({title:s.convs[h.id].title,bg:v==='chat'&&s.convId===h.id?'#ececea':'transparent',open:()=>this.go('chat',{convId:h.id,agentId:s.convs[h.id].agent||null,attach:[]})}))})).filter(g=>g.items.length);
+    // chat
+    const conv=s.convId?s.convs[s.convId]:null,cur=s.agentId?this.agent(s.agentId):null,model=K.MODELS.find(m=>m.id===s.modelId);
+    const agView=a=>{const t=tileC(a.hue);return {...a,tileBg:t.bg,tileFg:t.fg};};
+    out.convTitle=conv?conv.title:'Новый чат';
+    out.chatEmpty=!conv;out.chatJustify=conv?'flex-start':'center';out.scrollFlex=conv?'1 1 auto':'0 1 auto';
+    out.emptyAgentShow=!conv&&!!cur;out.emptyNoAgent=!conv&&!cur;
+    out.emptyAgent=cur?agView(cur):{};
+    out.suggestions=(cur?cur.examples:['Сводка по добыче нефти за октябрь','Какие проекты инвестпрограммы 2027 имеют IRR ниже 15%?','Найди регламент по ГРП на нагнетательных скважинах']).map(t=>({text:t,onClick:()=>this.setState({draft:t})}));
+    out.msgs=conv?conv.msgs.map((m,i)=>{const key=s.convId+i,a=m.agent?this.agent(m.agent):null,t=a?tileC(a.hue):tileC(20);
+      const open=s.openSteps[key]!==undefined?s.openSteps[key]:!!this.props.stepsExpanded;
+      return {isUser:m.role==='user',isBot:m.role!=='user',text:m.text||'',hasText:!!m.text,hasFiles:!!(m.files&&m.files.length),files:(m.files||[]).map(fileView),
+        agentName:a?a.name:'Ассистент КЕРН',abbr:a?a.abbr:'К',tileBg:t.bg,tileFg:t.fg,model:m.model||'',time:m.time||'',
+        stepsOpen:open,chevRot:open?90:0,toggleSteps:()=>this.setState(st=>({openSteps:{...st.openSteps,[key]:!open}})),
+        steps:(m.steps||[]).map(x=>({text:x})),
+        blocks:(m.blocks||[]).map(b=>({...b,isH1:b.t==='h1',isH2:b.t==='h2',isP:b.t==='p',isMeta:b.t==='meta',isList:b.t==='list',isTable:b.t==='table',isFiles:b.t==='files',files:b.t==='files'?b.files.map(f=>({...fileView(f),open:()=>f.href?this.setState({deck:f}):this.toast('Скачивание: '+f.name)})):[],rows:b.rows?b.rows.map(r=>({cells:r})):[],items:b.items||[],head:b.head||[]}))};}):[];
+    out.pending=s.pending;
+    if(s.pending){const a=s.pendAgent?this.agent(s.pendAgent):null,t=a?tileC(a.hue):tileC(20);
+      out.pend={name:a?a.name:'Ассистент КЕРН',abbr:a?a.abbr:'К',tileBg:t.bg,tileFg:t.fg};
+      out.pendDone=s.pendSteps.slice(0,s.pendStep).map(x=>({text:x}));
+      out.shimmer=React.createElement('span',{key:'sh',style:{background:'linear-gradient(90deg,#a3a39d 30%,#1d1d1b 50%,#a3a39d 70%)',backgroundSize:'200% 100%',WebkitBackgroundClip:'text',backgroundClip:'text',color:'transparent',animation:'shimmer 1.8s linear infinite'}},s.pendSteps[s.pendStep]+'…');}
+    // composer
+    out.draft=s.draft;out.onDraft=e=>this.setState({draft:e.target.value});
+    out.onKey=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();this.send();}};
+    out.send=this.send;const canSend=!!(s.draft.trim()||s.attach.length)&&!s.pending&&!s.rec;out.sendBg=canSend?'#1d1d1b':'#d6d6d1';
+    out.attach=s.attach.map((f,i)=>({...fileView(f),remove:()=>this.setState(st=>({attach:st.attach.filter((_,j)=>j!==i)}))}));out.hasAttach=s.attach.length>0;
+    out.rec=s.rec;out.notRec=!s.rec;out.bars=s.bars.map(h=>({h}));
+    const sec=Math.floor(s.recTick*0.09);out.recTime=String(Math.floor(sec/60)).padStart(1,'0')+':'+String(sec%60).padStart(2,'0');
+    out.toggleRec=this.toggleRec;out.micBg=s.rec?'oklch(0.58 0.19 25)':'transparent';out.micColor=s.rec?'#fff':'#55554f';
+    const mt=k=>()=>this.setState({menu:s.menu===k?null:k});
+    out.menuOpen=!!s.menu;out.menuAttach=s.menu==='attach';out.menuFormats=s.menu==='formats';out.menuAgent=s.menu==='agent';out.menuModel=s.menu==='model';
+    out.openAttach=mt('attach');out.openFormats=mt('formats');out.openAgent=mt('agent');out.openModel=mt('model');out.closeMenu=()=>this.setState({menu:null});
+    out.addFile=()=>{const f=K.DEMO_FILES[s.fileIdx%K.DEMO_FILES.length];this.setState({attach:[...s.attach,f],fileIdx:s.fileIdx+1,menu:null});};
+    out.addFromColl=()=>this.setState({attach:[...s.attach,{name:'Коллекция: Технико-экономические модели',ext:'col',kind:'642 документа'}],menu:null});
+    out.agentLabel=cur?cur.name:'Без агента';out.agentPillShow=!!cur;out.agentPill=cur?agView(cur):{};
+    out.agentOptions=[{name:'Без агента',short:'Общий ассистент с поиском по коллекциям',abbr:'К',tileBg:'#f0f0ed',tileFg:'#55554f',check:!s.agentId,onClick:()=>this.setState({agentId:null,menu:null})},
+      ...agents.map(a=>({...agView(a),check:s.agentId===a.id,onClick:()=>this.setState({agentId:a.id,menu:null})}))].map(o=>({...o,checkOp:o.check?1:0}));
+    out.allAgentsLink=()=>this.go('agents');
+    out.modelLabel=model.short;
+    out.modelOptions=K.MODELS.map(m=>({...m,checkOp:m.id===s.modelId?1:0,onClick:()=>this.setState({modelId:m.id,menu:null})}));
+    out.formatGroups=K.FORMATS.map(g=>{const t=tileC(g.hue);return {...g,bg:t.bg,fg:t.fg};});
+    // agents
+    const q=s.agentSearch.toLowerCase();
+    out.agentSearch=s.agentSearch;out.onAgentSearch=e=>this.setState({agentSearch:e.target.value});
+    out.agentCards=agents.filter(a=>!q||a.name.toLowerCase().includes(q)||a.short.toLowerCase().includes(q)).map(a=>({...agView(a),isCustom:a.author!=='Системный',
+      open:()=>this.go('agent',{agentOpen:a.id}),chat:e=>{e.stopPropagation();this.startAgentChat(a.id);}}));
+    const ao=this.agent(s.agentOpen)||agents[0];
+    out.ag={...agView(ao),hasSchema:!!ao.schema,hasJson:!!ao.json,
+      inputs:ao.inputs.map(r=>({name:r[0],formats:r[1],req:r[2]?'обязательно':'опционально',reqBg:r[2]?'#1d1d1b':'#f0f0ed',reqFg:r[2]?'#fff':'#6b6b66'})),
+      out:ao.out.map(r=>({name:r[0],desc:r[1]})),
+      schema:(ao.schema||[]).map((r,i)=>({n:String(i+1).padStart(2,'0'),name:r[0],desc:r[1],req:r[2]?'обязательное':'опциональное',reqBg:r[2]?'oklch(0.94 0.05 60)':'#f3f3f1',reqFg:r[2]?'oklch(0.45 0.12 60)':'#7a7a74'})),
+      examples:ao.examples.map(t=>({text:t,onClick:()=>this.startAgentChat(ao.id,t)}))};
+    out.agentChat=()=>this.startAgentChat(ao.id);out.agentEdit=()=>this.go('builder',{agentName:ao.name});
+    // builder
+    const nodeMap={};s.nodes.forEach(n=>nodeMap[n.id]=n);
+    out.nodes=s.nodes.map(n=>{const d=dims(n),t=tileC(CATH[n.cat]),sel=s.sel===n.id,done=s.runDone.includes(n.id),curRun=s.runCur===n.id&&s.running;
+      return {...n,w:d.w,h:d.h,tileBg:t.bg,tileFg:t.fg,isSub:n.cat==='sub',isReg:n.cat!=='sub',
+        isTrig:n.cat==='trig',isAI:n.cat==='ai',isData:n.cat==='data',isLogic:n.cat==='logic',isOut:n.cat==='out',
+        isModelK:n.kind==='model',isMemK:n.kind==='memory',isToolK:n.kind==='tool',
+        hasIn:n.cat!=='trig'&&n.cat!=='sub',hasOut:n.cat!=='out'&&n.kind!=='if'&&n.cat!=='sub',isIf:n.kind==='if',isAgent:n.kind==='agent',isDone:done,
+        border:curRun?'1.5px solid '+ACC:sel?'1.5px solid #1d1d1b':done?'1.5px solid '+GREEN:'1px solid #d9d9d4',
+        shadow:sel?'0 6px 22px rgba(0,0,0,.10)':'0 1px 3px rgba(0,0,0,.05)',
+        onDown:e=>{e.stopPropagation();this.setState({sel:n.id,drag:{id:n.id,sx:e.clientX,sy:e.clientY,ox:n.x,oy:n.y}});}};});
+    out.edges=s.edges.filter(e=>nodeMap[e.f]&&nodeMap[e.t]).map(e=>{const a=nodeMap[e.f],b=nodeMap[e.t],[x1,y1]=pt(a,e.fp||'out'),[x2,y2]=pt(b,e.tp||'in');let d;
+      if(e.tp==='top')d=`M${x1},${y1} C${x1},${y1+55} ${x2},${y2-55} ${x2},${y2}`;else{const c=Math.max(50,Math.abs(x2-x1)/2);d=`M${x1},${y1} C${x1+c},${y1} ${x2-c},${y2} ${x2},${y2}`;}
+      const lit=s.runDone.includes(e.f)&&s.runDone.includes(e.t);
+      return {d,color:lit?GREEN:'#b4b4ae',dash:e.dash?'5 5':'none',hasLabel:!!e.label,label:e.label||'',lx:x1+14,ly:y1-20};});
+    out.zoomT=`scale(${s.zoom})`;out.canvasW=Math.round(1560*s.zoom);out.canvasH=Math.round(640*s.zoom);out.zoomPct=Math.round(s.zoom*100)+'%';
+    out.zoomIn=()=>this.setState({zoom:Math.min(1.4,+(s.zoom+0.1).toFixed(2))});out.zoomOut=()=>this.setState({zoom:Math.max(0.4,+(s.zoom-0.1).toFixed(2))});out.zoomFit=()=>this.setState({zoom:0.7});
+    out.canvasMove=e=>{const p=this._pan;if(p){p.el.scrollLeft=p.sl-(e.clientX-p.x);p.el.scrollTop=p.st-(e.clientY-p.y);return;}const d=s.drag;if(!d)return;const nx=Math.max(0,Math.min(1480,Math.round(d.ox+(e.clientX-d.sx)/s.zoom))),ny=Math.max(0,Math.min(560,Math.round(d.oy+(e.clientY-d.sy)/s.zoom)));this.setState(st=>({nodes:st.nodes.map(n=>n.id===d.id?{...n,x:nx,y:ny}:n)}));};
+    out.canvasUp=()=>{if(this._pan){this._pan.el.style.cursor='grab';this._pan=null;}if(s.drag)this.setState({drag:null});};
+    out.canvasDown=e=>{if(e.button!==0)return;const el=e.currentTarget;if(e.target.closest&&e.target.closest('button,input,textarea'))return;e.preventDefault();this._pan={el,x:e.clientX,y:e.clientY,sl:el.scrollLeft,st:el.scrollTop};el.style.cursor='grabbing';if(s.sel)this.setState({sel:null});};
+    out.runTest=this.runTest;out.runLabel=s.running?'Выполняется…':'Тестовый запуск';out.publish=this.publish;
+    out.agentName=s.agentName;out.onAgentName=e=>this.setState({agentName:e.target.value});out.backFromBuilder=()=>this.go('agents');
+    out.palette=K.PALETTE.map(g=>{const t=tileC(CATH[g.cat]);return {group:g.group,items:g.items.map(([k,title])=>({title,tileBg:t.bg,tileFg:t.fg,isTrig:g.cat==='trig',isAI:g.cat==='ai',isData:g.cat==='data',isLogic:g.cat==='logic',isOut:g.cat==='out',onClick:()=>this.addNode(k,title,g.cat)}))};});
+    const sn=nodeMap[s.sel];out.hasSel=!!sn;out.noSel=!sn;
+    if(sn){const t=tileC(CATH[sn.cat]);out.selNode={title:sn.title,cat:CATN[sn.cat],tileBg:t.bg,tileFg:t.fg,
+      fields:sn.fields.map((f,fi)=>({label:f.label,value:f.value,min:f.min,max:f.max,step:f.step,isInput:f.k==='input',isArea:f.k==='area',isPills:f.k==='one'||f.k==='many',isRange:f.k==='range',
+        display:f.k==='range'?String(f.value).replace('.',','):'',onChange:e=>this.setField(sn.id,fi,e.target.value),
+        pills:(f.opts||[]).map(o=>{const on=f.k==='one'?f.value===o:f.value.includes(o);return {label:o,...pill(on),onClick:()=>this.setField(sn.id,fi,o)};})}))};}
+    out.delNode=this.delNode;
+    // collections
+    const cq=s.collSearch.toLowerCase(),favOnly=s.collTab==='fav';
+    const star=on=>({fill:on?'#e0a325':'none',stroke:on?'#e0a325':'#a3a39d'});
+    out.collTabs=[['all','Все'],['fav','Избранное']].map(([k,l])=>({label:l,...(s.collTab===k?{bg:'#fff',color:'#1d1d1b',shadow:'0 1px 2px rgba(0,0,0,.08)'}:{bg:'transparent',color:'#6b6b66',shadow:'none'}),onClick:()=>this.setState({collTab:k})}));
+    out.collSearch=s.collSearch;out.onCollSearch=e=>this.setState({collSearch:e.target.value});
+    out.tree=s.domains.map(d=>{let colls=d.colls;
+      if(favOnly&&!s.favs[d.id])colls=colls.filter(c=>s.favs[c.id]);
+      if(cq&&!d.name.toLowerCase().includes(cq))colls=colls.filter(c=>c.name.toLowerCase().includes(cq));
+      const show=(favOnly?(s.favs[d.id]||colls.length):true)&&(!cq||d.name.toLowerCase().includes(cq)||colls.length);
+      const open=!!s.open[d.id]||!!cq||favOnly;const st=star(!!s.favs[d.id]);
+      return {show,name:d.name,count:d.colls.length+' кол.',docs:fmt(d.colls.reduce((a,c)=>a+c.docs,0)),open,rot:open?90:0,starFill:st.fill,starStroke:st.stroke,
+        toggle:()=>this.setState(x=>({open:{...x.open,[d.id]:!x.open[d.id]}})),fav:e=>this.toggleFav(d.id,e),
+        colls:colls.map(c=>{const cs=star(!!s.favs[c.id]),on=s.selColl===c.id;return {name:c.name,docs:fmt(c.docs),bg:on?'#ececea':'transparent',weight:on?500:400,starFill:cs.fill,starStroke:cs.stroke,onClick:()=>this.setState({selColl:c.id}),fav:e=>this.toggleFav(c.id,e)};})};}).filter(d=>d.show);
+    out.treeEmpty=out.tree.length===0;
+    let selC=null,selD=null,gi=0,idx=0;s.domains.forEach(d=>d.colls.forEach(c=>{if(c.id===s.selColl){selC=c;selD=d;idx=gi;}gi++;}));
+    out.csHas=!!selC;
+    if(selC){const owners=['Лебедева М. С.','Захарова Е. В.','Ковалёв Д. А.','Тимофеев Р. И.','Петренко А. В.'],acc=['Внутренний','Конфиденциальный','Внутренний','Открытый'],src=['Загрузка файлов','Сетевая папка','СЭД','Хранилище S3'];
+      const st=star(!!s.favs[selC.id]),names=K.DOCS[selC.id]||(selC.docs?[`Сводный_реестр_${selC.name.split(' ')[0]}.xlsx`,`Методика_${selC.name.split(' ')[0]}.pdf`,`Отчёт_III_кв_2026.docx`]:[]);
+      out.cs={name:selC.name,domain:selD.name,desc:selC.desc||`Документы и данные направления «${selD.name}»: ${selC.name.toLowerCase()}.`,starFill:st.fill,starStroke:st.stroke,favLabel:s.favs[selC.id]?'В избранном':'В избранное',fav:()=>this.toggleFav(selC.id),
+        stats:[['Документов',fmt(selC.docs)],['Объём',selC.docs?(selC.docs*2.7/1024).toFixed(1).replace('.',',')+' ГБ':'—'],['Обновлено',selC.docs?['сегодня, 09:14','вчера','21.10.2026'][idx%3]:'—'],['Доступ',acc[idx%4]]].map(([l,v])=>({label:l,value:v})),
+        meta:[['Владелец',owners[idx%5]],['Источник',src[idx%4]],['Индекс','Керн Embed v2 · обновление при изменении']].map(([l,v])=>({label:l,value:v})),
+        docs:names.map((nm,i)=>{const fv=fileView({name:nm});const proc=i===names.length-1&&idx%2===0;return {...fv,size:[2.1,0.8,3.4,1.2,0.4][i%5].toString().replace('.',',')+' МБ',updated:['22.10.2026','20.10.2026','14.10.2026','03.10.2026','28.09.2026'][i%5],status:proc?'Индексируется':'Проиндексирован',statusColor:proc?ACC:GREEN};}),
+        hasDocs:names.length>0,noDocs:names.length===0};}
+    out.askColl=()=>this.go('chat',{convId:null,agentId:null,attach:[{name:'Коллекция: '+(selC?selC.name:''),ext:'col',kind:fmt(selC?selC.docs:0)+' документов'}]});
+    out.uploadDocs=()=>this.toast('Загрузка документов: выберите файлы или перетащите их в коллекцию');
+    out.openCreateDomain=()=>this.openModal('domain');out.openCreateColl=()=>this.openModal('coll');
+    // modal
+    const f=s.form||{};out.modalOpen=!!s.modal;out.isCollModal=s.modal==='coll';out.modalTitle=s.modal==='domain'?'Новый домен':'Новая коллекция';
+    out.closeModal=()=>this.setState({modal:null});out.submitModal=this.submitModal;
+    out.fName=f.name||'';out.fDesc=f.desc||'';out.fOwner=f.owner||'';
+    out.onFName=e=>this.setForm('name',e.target.value);out.onFDesc=e=>this.setForm('desc',e.target.value);out.onFOwner=e=>this.setForm('owner',e.target.value);
+    const pills=(k,opts)=>opts.map(o=>{const val=Array.isArray(o)?o[0]:o,lab=Array.isArray(o)?o[1]:o;return {label:lab,...pill(f[k]===val),onClick:()=>this.setForm(k,val)};});
+    out.fDomains=pills('domain',s.domains.map(d=>[d.id,d.name]));out.fAccess=pills('access',['Открытый','Внутренний','Конфиденциальный']);
+    out.fSource=pills('source',['Загрузка файлов','Сетевая папка','СЭД','Хранилище S3']);out.fRefresh=pills('refresh',['Вручную','Ежедневно','При изменении']);
+    // admin
+    out.adminTabs=[['overview','Обзор'],['tokens','API-токены']].map(([k,l])=>({label:l,border:s.adminTab===k?'#1d1d1b':'transparent',color:s.adminTab===k?'#1d1d1b':'#7a7a74',onClick:()=>this.setState({adminTab:k})}));
+    out.isOverview=s.adminTab==='overview';out.isTokens=s.adminTab==='tokens';
+    out.ranges=[['h24','24 часа'],['d7','7 дней'],['d30','30 дней'],['d90','90 дней']].map(([k,l])=>({label:l,...(s.range===k?{bg:'#fff',color:'#1d1d1b',shadow:'0 1px 2px rgba(0,0,0,.08)'}:{bg:'transparent',color:'#6b6b66',shadow:'none'}),onClick:()=>this.setState({range:k,hover:null})}));
+    const ser=this.series(s.range),qSum=ser.reduce((a,p)=>a+p.q,0);
+    const R={h24:{act:'1 284',actD:'+3,2%',docs:'1 140',qD:'+5,4%'},d7:{act:'1 912',actD:'+6,8%',docs:'7 860',qD:'+9,1%'},d30:{act:'2 206',actD:'+11,4%',docs:'31 420',qD:'+14,7%'},d90:{act:'2 371',actD:'+22,0%',docs:'88 300',qD:'+31,2%'}}[s.range];
+    const actTok=s.tokens.filter(t=>t.status==='active').length;
+    out.tiles=[
+      {label:'Пользователи',value:'2 418',sub:R.act+' активных за период',delta:R.actD},
+      {label:'Запросы',value:fmt(qSum),sub:'к агентам и моделям',delta:R.qD},
+      {label:'Агенты',value:String(37+s.custom.length),sub:'5 системных · '+(32+s.custom.length)+' пользовательских',delta:'+3'},
+      {label:'API-интеграции',value:String(s.tokens.length),sub:actTok+' активных токенов',delta:''},
+      {label:'Активные сессии',value:String(s.sessions),sub:'онлайн сейчас',delta:'',live:true},
+      {label:'Документы',value:'96 540',sub:'+'+R.docs+' за период',delta:''}].map(t=>({...t,hasDelta:!!t.delta}));
+    out.liveDot=React.createElement('span',{key:'ld',style:{width:7,height:7,borderRadius:'50%',background:GREEN,display:'inline-block',animation:'pulse 1.6s ease-in-out infinite'}});
+    const W=800,Hc=220,n=ser.length,mU=Math.max(...ser.map(p=>p.u))*1.18,mQ=Math.max(...ser.map(p=>p.q))*1.12,step=W/n;
+    out.bars2=ser.map((p,i)=>{const h=p.q/mQ*Hc;return {x:(i*step+step*0.22).toFixed(1),w:(step*0.56).toFixed(1),y:(Hc-h).toFixed(1),h:h.toFixed(1),fill:s.hover===i?'oklch(0.78 0.09 50)':'oklch(0.91 0.04 55)'};});
+    const lp=ser.map((p,i)=>[(i+0.5)*step,Hc-p.u/mU*Hc]);
+    out.linePath='M'+lp.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L');
+    out.areaPath=out.linePath+` L${lp[n-1][0].toFixed(1)},${Hc} L${lp[0][0].toFixed(1)},${Hc} Z`;
+    out.hoverCells=ser.map((p,i)=>({enter:()=>this.setState({hover:i})}));out.chartLeave=()=>this.setState({hover:null});
+    const yt=[1,0.75,0.5,0.25,0].map(k=>({v:fmt(mU*k)}));out.yTicks=yt;
+    const lblIdx=n<=8?ser.map((_,i)=>i):[0,1,2,3,4,5].map(k=>Math.round(k*(n-1)/5));
+    out.xLabels=ser.map((p,i)=>({t:lblIdx.includes(i)?p.short:''}));
+    out.hasHover=s.hover!==null&&s.hover<n;
+    if(out.hasHover){const p=ser[s.hover];out.tip={label:p.label,u:fmt(p.u),q:fmt(p.q),left:((s.hover+0.5)/n*100).toFixed(2),top:(lp[s.hover][1]/Hc*100).toFixed(2)};}
+    out.chartTitle={h24:'Активность по часам, сегодня',d7:'Активность по дням, 7 дней',d30:'Активность по дням, 30 дней',d90:'Активность по неделям, 90 дней'}[s.range];
+    const tops=[['Протоколы совещаний',0.31],['Работа с табличными данными',0.24],['Анализ презентаций',0.16],['Обработка архивов',0.12],['Генерация презентаций',0.09],['Аналитик ТЭО',0.08]];
+    out.topAgents=tops.map(([nm,p])=>({name:nm,value:fmt(qSum*p),w:(p/0.31*100).toFixed(1)}));
+    const ms=[['Керн Pro 32B',52,'#1d1d1b'],['Керн Ultra 70B',23,ACC],['Керн Lite 8B',17,'#a3a39d'],['Керн Vision 12B',8,'#dcdcd6']];
+    out.modelShares=ms.map(([nm,p,c])=>({name:nm,pct:p+'%',w:p,color:c,tokens:fmt(qSum*p/100*2.4)+' тыс. токенов'}));
+    // tokens
+    out.tokenRows=s.tokens.map(t=>{const pct=t.limit?Math.min(100,t.used/t.limit*100):0,paused=t.status==='paused';
+      return {name:t.name,sys:t.sys,key:t.key,agentsCount:String(t.agents.length),req:fmt(t.req),usedText:t.used.toFixed(1).replace('.',',')+' / '+t.limit.toFixed(1).replace('.',',')+' млн',usedW:pct.toFixed(1),
+        barColor:pct>=95?'oklch(0.58 0.19 25)':pct>=80?'oklch(0.72 0.15 70)':'#1d1d1b',parText:t.par+' / '+t.parMax,load:t.load+'%',
+        statusLabel:paused?'Приостановлен':'Активен',statusBg:paused?'#f0f0ed':'oklch(0.95 0.04 150)',statusFg:paused?'#6b6b66':'oklch(0.45 0.12 150)',
+        rowBg:s.tokSel===t.id?'#f7f7f5':'transparent',open:()=>this.setState({tokSel:t.id})};});
+    const usedSum=s.tokens.reduce((a,t)=>a+t.used,0),parSum=s.tokens.reduce((a,t)=>a+t.par,0),parMaxSum=s.tokens.reduce((a,t)=>a+t.parMax,0);
+    out.tokSummary=[['Активных токенов',actTok+' из '+s.tokens.length],['Токенов LLM за сутки',usedSum.toFixed(1).replace('.',',')+' млн'],['Параллельных запросов',parSum+' / '+parMaxSum],['Отклонено по лимитам','214 за 24 ч']].map(([l,v])=>({label:l,value:v}));
+    out.createToken=this.createToken;
+    const tk=s.tokens.find(t=>t.id===s.tokSel);out.drawerOpen=!!tk;out.closeDrawer=()=>this.setState({tokSel:null});
+    if(tk){const sp=[];for(let i=0;i<24;i++){const base=i<6?0.12:i<=19?0.5+0.5*Math.sin((i-6)/13*Math.PI):0.4-0.07*(i-19);sp.push(tk.status==='paused'?0.02:Math.max(0.03,base*(1+0.2*Math.sin(i*tk.seed*3.1))));}
+      const mx=Math.max(...sp)*1.1,pts=sp.map((v2,i)=>[(i/23*400).toFixed(1),(80-v2/mx*76).toFixed(1)]),line='M'+pts.map(p=>p.join(',')).join(' L');
+      const wts=[0.46,0.27,0.17,0.1],paused=tk.status==='paused';
+      out.tk={name:tk.name,sys:tk.sys,key:tk.key,created:tk.created,last:tk.last,p95:tk.p95,err:tk.err,spark:line,area:line+' L400,80 L0,80 Z',
+        onName:e=>this.setTok(tk.id,{name:e.target.value}),
+        agents:tk.agents.map((a,i)=>({name:a,req:fmt(tk.req*(wts[i]||0.05)/ (tk.agents.length===1?wts[0]:1))+' запросов'})),hasAgents:tk.agents.length>0,noAgents:tk.agents.length===0,
+        load:tk.load+'%',loadW:Math.max(tk.load,1),loadNote:tk.load>=35?'высокая нагрузка — рекомендуется выделенный пул':'в пределах нормы',
+        limit:tk.limit,limitText:tk.limit.toFixed(1).replace('.',',')+' млн',usedNote:'Использовано сегодня: '+tk.used.toFixed(1).replace('.',',')+' млн',onLimit:e=>this.setTok(tk.id,{limit:+e.target.value}),
+        parMax:String(tk.parMax),parDec:()=>this.setTok(tk.id,{parMax:Math.max(1,tk.parMax-1)}),parInc:()=>this.setTok(tk.id,{parMax:Math.min(64,tk.parMax+1)}),parNote:'Сейчас выполняется: '+tk.par,
+        rpm:tk.rpm,rpmText:tk.rpm+' / мин',onRpm:e=>this.setTok(tk.id,{rpm:+e.target.value}),
+        models:K.MODELS.map(m=>{const on=tk.models.includes(m.name);return {label:m.name,...pill(on),onClick:()=>this.setTok(tk.id,{models:on?tk.models.filter(x=>x!==m.name):[...tk.models,m.name]})};}),
+        allowBg:tk.allow?'#1d1d1b':'#d6d6d1',knob:tk.allow?18:2,toggleAllow:()=>this.setTok(tk.id,{allow:!tk.allow}),
+        statusLabel:paused?'Приостановлен':'Активен',statusBg:paused?'#f0f0ed':'oklch(0.95 0.04 150)',statusFg:paused?'#6b6b66':'oklch(0.45 0.12 150)',
+        pauseLabel:paused?'Возобновить':'Приостановить',togglePause:()=>{this.setTok(tk.id,{status:paused?'active':'paused'});this.toast(paused?'Токен возобновлён':'Токен приостановлен');},
+        revoke:()=>{this.setState(st=>({tokens:st.tokens.filter(t=>t.id!==tk.id),tokSel:null}));this.toast('Токен отозван');},
+        copy:()=>this.toast('Ключ скопирован'),save:()=>{this.setState({tokSel:null});this.toast('Лимиты сохранены и применены');}};}
+    // integrations
+    const KM=window.KERN_MAIL||{MAILS:[],INTEGRATIONS:[]},mls=s.mails||[];
+    out.isInt=v==='integrations';out.navBg.int=v==='integrations'&&s.intSel!=='mail'?'#ececea':'transparent';out.navBg.mail=v==='integrations'&&s.intSel==='mail'?'#ececea':'transparent';
+    out.goInt=()=>this.go('integrations',{intSel:null});out.goMail=()=>this.go('integrations',{intSel:'mail'});
+    out.intCatalog=s.intSel!=='mail';out.intMail=s.intSel==='mail';
+    const cnt=c=>mls.filter(m=>m.cat===c).length,nU=cnt('urgent'),nN=cnt('normal'),nZ=cnt('noise');
+    out.mailUrgentCount=String(nU);out.mailHasUrgent=nU>0&&s.mailActive;
+    out.integrations=(KM.INTEGRATIONS||[]).map(it=>{const t=tileC(it.hue),on=it.status==='active';return {...it,tileBg:t.bg,tileFg:t.fg,isOn:on,isOff:!on,
+      statusLabel:on?'Подключено':'Не подключено',statusBg:on?'oklch(0.95 0.04 150)':'#f0f0ed',statusFg:on?'oklch(0.45 0.12 150)':'#6b6b66',btnLabel:on?(it.id==='mail'?'Открыть':'Настроить'):'Подключить',
+      open:()=>it.id==='mail'?this.setState({intSel:'mail'}):this.toast(on?'Настройки интеграции «'+it.name+'»':'Мастер подключения: «'+it.name+'» — укажите адрес сервера и учётную запись')};});
+    out.mailActive=s.mailActive;out.mailPaused=!s.mailActive;
+    out.mailStatus=s.mailActive?{label:'Активна',bg:'oklch(0.95 0.04 150)',fg:'oklch(0.45 0.12 150)'}:{label:'Приостановлена',bg:'#f0f0ed',fg:'#6b6b66'};
+    out.mailToggleBg=s.mailActive?'#1d1d1b':'#d6d6d1';out.mailKnob=s.mailActive?18:2;
+    out.toggleMail=()=>{this.setState({mailActive:!s.mailActive});this.toast(s.mailActive?'Агент приостановлен — письма не анализируются':'Агент снова анализирует почту');};
+    const tot=198+mls.length,flt=117+nZ;
+    out.mailKpis=[
+      {label:'Всего писем за сегодня',value:String(tot),goal:nU+' срочных · '+(tot-flt-nU)+' во «Входящих»',w:100},
+      {label:'Отфильтровано',value:String(flt),goal:Math.round(flt/tot*100)+'% от входящего потока',w:Math.round(flt/tot*100)}];
+    const TABS=[['urgent','Срочные',nU],['normal','Входящие',nN],['noise','Отфильтровано',nZ],['all','Все',mls.length]];
+    out.mailTabs=TABS.map(([k,l,n])=>({label:l,count:String(n),...(s.mailTab===k?{bg:'#fff',color:'#1d1d1b',shadow:'0 1px 2px rgba(0,0,0,.08)'}:{bg:'transparent',color:'#6b6b66',shadow:'none'}),onClick:()=>this.setState({mailTab:k,mailOpen:null})}));
+    const CATV={urgent:{label:'Срочно',bg:'oklch(0.95 0.04 25)',fg:'oklch(0.5 0.17 25)',mark:'oklch(0.6 0.18 25)'},normal:{label:'Обычное',bg:'#f0f0ed',fg:'#55554f',mark:'#d6d6d1'},noise:{label:'Шум',bg:'#f6f6f4',fg:'#9a9a94',mark:'transparent'},pending:{label:'Анализ…',bg:'oklch(0.95 0.04 250)',fg:'oklch(0.45 0.13 250)',mark:'oklch(0.7 0.1 250)'}};
+    const list=mls.filter(m=>s.mailTab==='all'||m.cat===s.mailTab||(m.cat==='pending'));
+    out.mailEmpty=list.length===0;
+    out.mailRows=list.map(m=>{const c=CATV[m.cat]||CATV.normal,open=s.mailOpen===m.id,pend=m.cat==='pending',noise=m.cat==='noise';
+      const act=m.cat==='urgent'?'Уведомление отправлено через '+(m.notifyIn||'40 с'):m.cat==='normal'?'Оставлено во «Входящих»':noise?((m.trash||s.noiseAct==='trash')?'Перемещено в «Удалённые»':'Перемещено в архив'):'Определяю приоритет по смыслу письма';
+      const acts=m.cat==='urgent'?[['Пометить как обычное',()=>this.setMailCat(m.id,'normal','Письмо перенесено во «Входящие» — агент учтёт исправление')]]
+        :m.cat==='normal'?[['Это срочно',()=>this.setMailCat(m.id,'urgent','Письмо помечено срочным — агент учтёт исправление')],['Это шум',()=>this.setMailCat(m.id,'noise','Письмо перемещено в архив')]]
+        :noise?[['Вернуть во «Входящие»',()=>this.setMailCat(m.id,'normal','Письмо возвращено во «Входящие» — агент учтёт исправление')]]:[];
+      return {from:m.from,org:m.org,subj:m.subj,text:m.text,time:m.time,badge:c.label,badgeBg:c.bg,badgeFg:c.fg,mark:c.mark,
+        subjColor:noise?'#8a8a84':'#1d1d1b',subjWeight:m.cat==='urgent'?600:500,rowBg:pend?'oklch(0.985 0.01 250)':open?'#fafaf9':'#fff',
+        isPending:pend,notPending:!pend,isOpen:open&&!pend,act,actColor:m.cat==='urgent'?'oklch(0.5 0.17 25)':'#8a8a84',
+        reason:m.reason,conf:Math.round(m.conf*100)+'%',acts:acts.map(([l,fn])=>({label:l,onClick:e=>{e.stopPropagation();fn();}})),
+        toggle:()=>{if(!pend)this.setState({mailOpen:open?null:m.id});}};});
+    out.simulateMail=this.simulateMail;out.simLabel=s.analyzing?'Анализирую письмо…':'Смоделировать входящее';out.simOp=s.analyzing||!s.mailActive?0.55:1;
+    out.mPrompt=s.mPrompt;out.onMPrompt=e=>this.setState({mPrompt:e.target.value});
+    out.noiseOpts=[['archive','В архив'],['trash','В «Удалённые»'],['mark','Только пометить']].map(([k,l])=>({label:l,...pill(s.noiseAct===k),onClick:()=>this.setState({noiseAct:k})}));
+    out.notifyOpts=[['push','Push в платформе'],['chat','Мессенджер'],['sms','SMS']].map(([k,l])=>({label:l,...pill(!!s.notifyCh[k]),onClick:()=>this.setState(st=>({notifyCh:{...st.notifyCh,[k]:!st.notifyCh[k]}}))}));
+    out.thresh=s.thresh;out.threshText=Math.round(s.thresh*100)+'%';out.onThresh=e=>this.setState({thresh:+e.target.value});
+    out.vipList=s.vip.map(n=>({name:n,remove:()=>this.setState(st=>({vip:st.vip.filter(x=>x!==n)}))}));out.addVip=()=>this.toast('Добавление VIP: выберите отправителя из адресной книги');
+    out.saveMailAgent=()=>this.toast('Настройки агента «Цифровой дворник» сохранены');
+    out.openMailAgentChat=()=>this.go('chat',{convId:null,agentId:null,draft:'Покажи срочные письма за сегодня и что по ним нужно сделать',attach:[]});
+    const nf=s.notif;out.notifShow=!!nf;out.notif=nf||{};out.closeNotif=()=>this.setState({notif:null});
+    out.openNotif=()=>this.setState({view:'integrations',intSel:'mail',mailTab:'urgent',mailOpen:nf?nf.id:null,notif:null});
+    const dk=s.deck;out.deckOpen=!!dk;out.deckSrc=dk?dk.href:'';out.deckName=dk?dk.name:'';
+    out.closeDeck=()=>this.setState({deck:null});
+    const blob=()=>fetch(dk.href).then(r=>r.blob()).then(b=>URL.createObjectURL(new Blob([b],{type:'text/html'})));
+    out.deckDownload=()=>blob().then(u=>{const a=document.createElement('a');a.href=u;a.download=dk.name;document.body.appendChild(a);a.click();a.remove();this.toast('Файл '+dk.name+' скачан');}).catch(()=>this.toast('Не удалось скачать файл'));
+    out.deckTab=()=>{const w=window.open('','_blank');blob().then(u=>{if(w)w.location.href=u;else location.href=u;});};
+    return out;
+  }
+}
+</script>
+</body>
+</html>
